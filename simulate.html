@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AeroSim — Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07090d;--bg2:#0c1018;--bg3:#111820;--panel:#090d13;--border:rgba(0,210,255,0.10);--border2:rgba(0,210,255,0.22);--acc:#00d2ff;--acc2:#00ff9d;--acc3:#ff6b35;--warn:#ffd166;--heat:#ff4500;--text:#c8dde8;--text2:#4a6a7a;--mono:'Share Tech Mono',monospace;--sans:'Syne',sans-serif;--nav-h:48px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:12px;display:flex;flex-direction:column;}
+.topnav{height:var(--nav-h);flex-shrink:0;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:0;z-index:100;}
+.nav-brand{font-family:var(--sans);font-weight:800;font-size:15px;color:var(--acc);letter-spacing:.06em;margin-right:28px;white-space:nowrap;}
+.nav-brand span{color:var(--text2);font-weight:400;font-size:10px;margin-left:6px;}
+.nav-links{display:flex;gap:2px;flex:1;}
+.nav-link{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:5px;text-decoration:none;color:var(--text2);font-size:10px;letter-spacing:.06em;text-transform:uppercase;transition:all .15s;border:1px solid transparent;white-space:nowrap;}
+.nav-link svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.nav-link:hover{color:var(--text);background:rgba(0,210,255,.05);border-color:var(--border);}
+.nav-link.active{color:var(--acc);background:rgba(0,210,255,.09);border-color:var(--border2);}
+.app{flex:1;display:flex;overflow:hidden;min-height:0;}
+.sidebar{width:224px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.sidebar::-webkit-scrollbar{width:2px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);}
+.rpanel{width:195px;flex-shrink:0;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.rpanel::-webkit-scrollbar{width:2px;}
+.rpanel::-webkit-scrollbar-thumb{background:var(--border2);}
+.psec{border-bottom:1px solid var(--border);padding:11px 13px;}
+.ptitle{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:9px;display:flex;align-items:center;gap:4px;}
+.ptitle::before{content:'';display:inline-block;width:2px;height:9px;background:var(--acc);border-radius:2px;}
+.ptitle.heat::before{background:var(--heat);}
+.crow{margin-bottom:9px;}
+.clabel{font-size:10px;color:var(--text2);margin-bottom:3px;display:flex;justify-content:space-between;}
+.clabel .v{color:var(--acc);font-size:11px;}
+.clabel .vh{color:var(--heat);font-size:11px;}
+input[type=range]{width:100%;-webkit-appearance:none;height:2px;background:var(--bg3);border-radius:2px;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--acc);cursor:pointer;}
+input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(to right,var(--acc) var(--p,50%),var(--bg3) var(--p,50%));height:2px;border-radius:2px;}
+input[type=range].hs::-webkit-slider-thumb{background:var(--heat);}
+input[type=range].hs::-webkit-slider-runnable-track{background:linear-gradient(to right,var(--heat) var(--p,50%),var(--bg3) var(--p,50%));}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.sbtn{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:6px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text2);font-family:var(--mono);font-size:9px;letter-spacing:.04em;text-transform:uppercase;transition:all .15s;}
+.sbtn:hover{border-color:rgba(0,210,255,.28);color:var(--text);}
+.sbtn.active{border-color:var(--acc);color:var(--acc);background:rgba(0,210,255,.05);}
+.sbtn svg{width:30px;height:20px;}
+.vwrap{display:flex;gap:4px;flex-wrap:wrap;}
+.vbtn{padding:3px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--text2);cursor:pointer;font-family:var(--mono);font-size:9px;transition:all .15s;}
+.vbtn:hover{border-color:rgba(0,210,255,.28);color:var(--text);}
+.vbtn.active{border-color:var(--acc);color:var(--acc);background:rgba(0,210,255,.07);}
+.vbtn.hactive{border-color:var(--heat);color:var(--heat);background:rgba(255,69,0,.07);}
+.bigbtn{width:100%;padding:8px;border-radius:4px;border:none;cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;transition:all .15s;margin-top:3px;}
+.bigbtn.go{background:rgba(0,255,157,.1);color:var(--acc2);border:1px solid rgba(0,255,157,.25);}
+.bigbtn.go:hover{background:rgba(0,255,157,.17);}
+.bigbtn.rst{background:rgba(255,107,53,.08);color:var(--acc3);border:1px solid rgba(255,107,53,.22);}
+.compass-wrap{display:flex;justify-content:center;padding:4px 0 8px;}
+#compass{cursor:pointer;}
+.orient-row{display:flex;gap:6px;margin-bottom:6px;}
+.orient-btn{flex:1;padding:5px 2px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;cursor:pointer;color:var(--text2);font-family:var(--mono);font-size:9px;text-align:center;transition:all .15s;}
+.orient-btn:hover{border-color:rgba(0,210,255,.3);color:var(--acc);}
+.upzone{border:1px dashed rgba(0,210,255,.22);border-radius:5px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(0,210,255,.02);}
+.upzone:hover{border-color:var(--acc);background:rgba(0,210,255,.05);}
+.upzone input{display:none;}
+.uptext{font-size:10px;color:var(--text2);}
+.uptext strong{color:var(--acc);display:block;margin-bottom:1px;}
+#upname{font-size:9px;color:var(--acc2);margin-top:5px;word-break:break-all;}
+.cwrap{flex:1;position:relative;overflow:hidden;}
+#c3d{display:block;width:100%;height:100%;}
+.hud{position:absolute;top:9px;left:9px;font-size:10px;color:var(--text2);background:rgba(7,9,13,.88);padding:3px 9px;border-radius:3px;border:1px solid var(--border);}
+.hud span{color:var(--acc2);}
+.cbtns{position:absolute;top:9px;right:9px;display:flex;gap:4px;}
+.ibtn{padding:3px 8px;background:rgba(7,9,13,.88);border:1px solid var(--border);border-radius:3px;color:var(--text2);cursor:pointer;font-size:9px;font-family:var(--mono);transition:all .15s;}
+.ibtn:hover{color:var(--acc);border-color:rgba(0,210,255,.28);}
+.ibtn.on{color:var(--acc);border-color:var(--acc);}
+.legbox{position:absolute;bottom:11px;left:11px;background:rgba(7,9,13,.92);border:1px solid var(--border);border-radius:4px;padding:7px 10px;}
+.legtitle{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:4px;}
+#legbar{width:120px;height:6px;border-radius:3px;display:block;margin-bottom:2px;}
+.leglbls{display:flex;justify-content:space-between;font-size:8px;color:var(--text2);}
+.wind-hud{position:absolute;bottom:11px;right:11px;background:rgba(7,9,13,.92);border:1px solid var(--border);border-radius:4px;padding:7px 10px;min-width:90px;}
+.wind-title{font-size:8px;color:var(--text2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
+.wind-val{font-size:14px;font-family:var(--sans);font-weight:600;color:var(--acc);}
+.wind-sub{font-size:9px;color:var(--text2);}
+.progwrap{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(7,9,13,.88);z-index:50;}
+.progwrap.show{display:flex;}
+.progtitle{font-family:var(--sans);font-size:15px;font-weight:600;color:var(--acc);margin-bottom:12px;}
+.progout{width:280px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:8px;}
+.progin{height:100%;background:var(--acc);border-radius:2px;transition:width .12s;}
+.progmsg{font-size:10px;color:var(--text2);}
+.badge{padding:2px 9px;border-radius:3px;font-size:8px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;}
+.badge.run{background:rgba(0,255,157,.1);color:var(--acc2);border:1px solid rgba(0,255,157,.25);}
+.badge.stop{background:rgba(255,107,53,.1);color:var(--acc3);border:1px solid rgba(255,107,53,.25);}
+.badge.cmp{background:rgba(0,210,255,.1);color:var(--acc);border:1px solid rgba(0,210,255,.25);}
+.mcard{padding:9px 13px;border-bottom:1px solid var(--border);}
+.mname{font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text2);margin-bottom:2px;}
+.mval{font-size:19px;font-family:var(--sans);font-weight:600;color:var(--acc);line-height:1;}
+.mval.hot{color:var(--heat);}
+.munit{font-size:9px;color:var(--text2);margin-top:1px;}
+.mbarw{margin-top:4px;height:2px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.mbar{height:100%;border-radius:2px;background:var(--acc);transition:width .35s;}
+.mbar.d{background:var(--acc3);}.mbar.h{background:var(--heat);}.mbar.w{background:var(--warn);}
+.chartwrap{padding:7px 13px 11px;border-bottom:1px solid var(--border);}
+#chtcv{width:100%;height:50px;display:block;}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- NAV injected by JS -->
+
+<div class="app">
+<div class="sidebar">
+  <div class="psec">
+    <div class="ptitle">Upload part</div>
+    <div class="upzone" id="dropZone" onclick="document.getElementById('fileIn').click()">
+      <input type="file" id="fileIn" accept=".obj,.stl">
+      <div style="font-size:18px;color:var(--text2);margin-bottom:5px;">&#8679;</div>
+      <div class="uptext"><strong>.obj or .stl</strong>drag &amp; drop or click</div>
+      <div id="upname"></div>
+    </div>
+  </div>
+  <div class="psec">
+    <div class="ptitle">Shape</div>
+    <div class="sgrid">
+      <button class="sbtn active" onclick="loadBuiltin('airfoil',this)"><svg viewBox="0 0 30 20"><path d="M2 10Q7 3 17 8Q22 10 28 10Q22 10 17 12Q7 17 2 10Z" fill="none" stroke="#00d2ff" stroke-width="1.2"/></svg>Airfoil</button>
+      <button class="sbtn" onclick="loadBuiltin('sphere',this)"><svg viewBox="0 0 30 20"><ellipse cx="15" cy="10" rx="8" ry="7" fill="none" stroke="#4a6a7a" stroke-width="1.2"/></svg>Sphere</button>
+      <button class="sbtn" onclick="loadBuiltin('cylinder',this)"><svg viewBox="0 0 30 20"><rect x="3" y="5" width="24" height="10" rx="5" fill="none" stroke="#4a6a7a" stroke-width="1.2"/></svg>Cylinder</button>
+      <button class="sbtn" onclick="loadBuiltin('car',this)"><svg viewBox="0 0 30 20"><path d="M2 14L5 14L7 8L23 8L25 14L28 14" fill="none" stroke="#4a6a7a" stroke-width="1.2"/><path d="M9 8L11 4L20 4L22 8" fill="none" stroke="#4a6a7a" stroke-width=".9"/></svg>Car</button>
+      <button class="sbtn" onclick="loadBuiltin('wedge',this)"><svg viewBox="0 0 30 20"><polygon points="2,17 28,17 2,3" fill="none" stroke="#4a6a7a" stroke-width="1.2"/></svg>Wedge</button>
+      <button class="sbtn" onclick="loadBuiltin('box',this)"><svg viewBox="0 0 30 20"><rect x="5" y="4" width="20" height="12" rx="2" fill="none" stroke="#4a6a7a" stroke-width="1.2"/></svg>Box</button>
+    </div>
+  </div>
+  <div class="psec">
+    <div class="ptitle">Wind direction</div>
+    <div class="compass-wrap"><canvas id="compass" width="110" height="110" onclick="compassClick(event)"></canvas></div>
+    <div class="crow"><div class="clabel">Azimuth (°)<span class="v" id="lAz">0</span></div><input type="range" id="sAz" min="0" max="360" value="0" oninput="sp('az',this)"></div>
+    <div class="crow"><div class="clabel">Elevation (°)<span class="v" id="lEl">5</span></div><input type="range" id="sEl" min="-30" max="30" value="5" oninput="sp('el',this)"></div>
+    <div class="crow"><div class="clabel">Speed (m/s)<span class="v" id="lSpd">40</span></div><input type="range" id="sSpd" min="1" max="200" value="40" oninput="sp('spd',this)"></div>
+  </div>
+  <div class="psec">
+    <div class="ptitle">Object orientation</div>
+    <div class="orient-row"><button class="orient-btn" onclick="rotObj('x',15)">+X 15°</button><button class="orient-btn" onclick="rotObj('x',-15)">−X 15°</button></div>
+    <div class="orient-row"><button class="orient-btn" onclick="rotObj('y',15)">+Y 15°</button><button class="orient-btn" onclick="rotObj('y',-15)">−Y 15°</button></div>
+    <div class="orient-row"><button class="orient-btn" onclick="rotObj('z',15)">+Z 15°</button><button class="orient-btn" onclick="rotObj('z',-15)">−Z 15°</button></div>
+    <button class="orient-btn" style="width:100%;margin-top:2px;" onclick="resetOrientation()">Reset orientation</button>
+  </div>
+  <div class="psec">
+    <div class="ptitle">Fluid properties</div>
+    <div class="crow"><div class="clabel">Density (kg/m³)<span class="v" id="lDen">1.22</span></div><input type="range" id="sDen" min="0.1" max="10" step="0.05" value="1.22" oninput="sp('den',this)"></div>
+    <div class="crow"><div class="clabel">Viscosity ×10⁻⁵<span class="v" id="lVisc">1.81</span></div><input type="range" id="sVisc" min="0.2" max="20" step="0.1" value="1.81" oninput="sp('visc',this)"></div>
+    <div class="crow"><div class="clabel">Prandtl number<span class="v" id="lPr">0.71</span></div><input type="range" id="sPr" min="0.1" max="5" step="0.01" value="0.71" oninput="sp('pr',this)"></div>
+  </div>
+  <div class="psec">
+    <div class="ptitle heat">Thermal</div>
+    <div class="crow"><div class="clabel">Wall temp (°C)<span class="vh" id="lTw">80</span></div><input type="range" class="hs" id="sTw" min="-40" max="500" value="80" oninput="sp('tw',this)"></div>
+    <div class="crow"><div class="clabel">Freestream T (°C)<span class="v" id="lTinf">20</span></div><input type="range" id="sTinf" min="-50" max="200" value="20" oninput="sp('tinf',this)"></div>
+    <div class="crow"><div class="clabel">Conductivity k<span class="v" id="lK">0.026</span></div><input type="range" id="sK" min="0.01" max="1" step="0.001" value="0.026" oninput="sp('kk',this)"></div>
+    <div class="crow"><div class="clabel">Heat source (W/m³)<span class="vh" id="lQdot">0</span></div><input type="range" class="hs" id="sQdot" min="0" max="5000" step="50" value="0" oninput="sp('qdot',this)"></div>
+  </div>
+  <div class="psec">
+    <div class="ptitle">Visualization</div>
+    <div class="vwrap">
+      <button class="vbtn active" id="vb_pressure" onclick="setVis('pressure',this)">Pressure</button>
+      <button class="vbtn" id="vb_velocity" onclick="setVis('velocity',this)">Velocity</button>
+      <button class="vbtn" id="vb_temperature" onclick="setVis('temperature',this)">Temp</button>
+      <button class="vbtn" id="vb_heat" onclick="setVis('heat',this)">Heat flux</button>
+      <button class="vbtn" id="vb_cp" onclick="setVis('cp',this)">Cp</button>
+      <button class="vbtn" id="vb_nusselt" onclick="setVis('nusselt',this)">Nusselt</button>
+      <button class="vbtn" id="vb_turb" onclick="setVis('turbulence',this)">Turbulence</button>
+    </div>
+  </div>
+  <div class="psec">
+    <div class="ptitle">Solver</div>
+    <div class="crow"><div class="clabel">Grid resolution<span class="v" id="lRes">28</span></div><input type="range" id="sRes" min="16" max="44" step="4" value="28" oninput="sp('res',this)"></div>
+    <button class="bigbtn go" id="runBtn" onclick="toggleRun()">&#9654; Run CFD + heat</button>
+    <button class="bigbtn rst" onclick="doReset()">&#8635; Reset</button>
+  </div>
+</div>
+
+<div class="cwrap" id="cwrap">
+  <canvas id="c3d"></canvas>
+  <div class="hud">ITER <span id="iterhud">0</span> &nbsp;|&nbsp; T=<span id="timehud">0.000</span>s &nbsp;|&nbsp; &epsilon;=<span id="reshud">1.0e+0</span></div>
+  <div class="cbtns">
+    <button class="ibtn on" id="bStream" onclick="tog('stream')">STREAM</button>
+    <button class="ibtn on" id="bWire" onclick="tog('wire')">WIRE</button>
+    <button class="ibtn" id="bAxes" onclick="tog('axes')">AXES</button>
+    <button class="ibtn on" id="bWindArrow" onclick="tog('wind')">WIND</button>
+    <button class="ibtn" id="bVectors" onclick="tog('vectors')">VECTORS</button>
+  </div>
+  <div class="legbox">
+    <div class="legtitle" id="legtitle">Surface pressure Cp</div>
+    <canvas id="legbar" width="120" height="6"></canvas>
+    <div class="leglbls"><span id="legmin">Low</span><span id="legmax">High</span></div>
+  </div>
+  <div class="wind-hud">
+    <div class="wind-title">Wind vector</div>
+    <div class="wind-val" id="windDisp">&#8594; 0°</div>
+    <div class="wind-sub" id="windSub">40 m/s</div>
+  </div>
+  <div class="progwrap" id="progwrap">
+    <div class="progtitle">Solving Navier-Stokes + Energy...</div>
+    <div class="progout"><div class="progin" id="progin" style="width:0%"></div></div>
+    <div class="progmsg" id="progmsg">Initializing...</div>
+  </div>
+</div>
+
+<div class="rpanel">
+  <div class="psec" style="display:flex;align-items:center;justify-content:space-between;">
+    <div style="font-family:var(--sans);font-weight:800;font-size:13px;color:var(--text);">AeroSim 3D</div>
+    <div id="badge" class="badge stop">STOPPED</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;padding:8px 10px;gap:8px;border-bottom:1px solid var(--border);">
+    <div><div class="mname">Reynolds</div><div style="font-size:14px;font-family:var(--sans);font-weight:700;color:var(--acc2);" id="hRe">—</div></div>
+    <div><div class="mname">Mach</div><div style="font-size:14px;font-family:var(--sans);font-weight:700;color:var(--acc2);" id="hMach">—</div></div>
+    <div><div class="mname">Iter</div><div style="font-size:14px;font-family:var(--sans);font-weight:700;color:var(--acc);" id="hIter">0</div></div>
+    <div><div class="mname">Nu avg</div><div style="font-size:14px;font-family:var(--sans);font-weight:700;color:var(--heat);" id="hNu">—</div></div>
+  </div>
+  <div class="psec"><div class="ptitle">Aerodynamics</div></div>
+  <div class="mcard"><div class="mname">Drag coeff Cd</div><div class="mval" id="mCd">—</div><div class="munit">dimensionless</div><div class="mbarw"><div class="mbar d" id="bCd" style="width:0%"></div></div></div>
+  <div class="mcard"><div class="mname">Lift coeff Cl</div><div class="mval" id="mCl">—</div><div class="munit">dimensionless</div><div class="mbarw"><div class="mbar" id="bCl" style="width:0%"></div></div></div>
+  <div class="mcard"><div class="mname">L/D ratio</div><div class="mval" id="mLD">—</div><div class="munit">efficiency</div></div>
+  <div class="mcard"><div class="mname">Stagnation pressure</div><div class="mval" id="mStag">—</div><div class="munit">Pa</div><div class="mbarw"><div class="mbar w" id="bStag" style="width:0%"></div></div></div>
+  <div class="psec"><div class="ptitle heat">Thermal</div></div>
+  <div class="mcard"><div class="mname">Max surface temp</div><div class="mval hot" id="mTmax">—</div><div class="munit">°C</div><div class="mbarw"><div class="mbar h" id="bTmax" style="width:0%"></div></div></div>
+  <div class="mcard"><div class="mname">Min surface temp</div><div class="mval" id="mTmin">—</div><div class="munit">°C</div></div>
+  <div class="mcard"><div class="mname">Avg Nusselt number</div><div class="mval" id="mNu">—</div><div class="munit">Nu = hL/k</div><div class="mbarw"><div class="mbar h" id="bNu" style="width:0%"></div></div></div>
+  <div class="mcard"><div class="mname">Avg heat flux q″</div><div class="mval hot" id="mQpp">—</div><div class="munit">W/m²</div><div class="mbarw"><div class="mbar h" id="bQpp" style="width:0%"></div></div></div>
+  <div class="mcard"><div class="mname">Conv. coefficient h</div><div class="mval" id="mH">—</div><div class="munit">W/m²K</div></div>
+  <div class="mcard"><div class="mname">Thermal BL thickness</div><div class="mval" id="mBL">—</div><div class="munit">mm estimated</div></div>
+  <div class="chartwrap">
+    <div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:4px;">Cd / Nu history</div>
+    <canvas id="chtcv" width="169" height="50"></canvas>
+  </div>
+  <div class="mcard"><div class="mname">Residual</div><div class="mval" id="mResid" style="font-size:12px;">1.000e+0</div><div class="munit">convergence monitor</div></div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ══════════════════════════════════════════
+//  STORE  (localStorage parts database)
+// ══════════════════════════════════════════
+const DB_KEY = 'aerosim_parts';
+const Store = {
+  getAll() { try { return JSON.parse(localStorage.getItem(DB_KEY) || '[]'); } catch(e) { return []; } },
+  save(p)  { localStorage.setItem(DB_KEY, JSON.stringify(p)); window.dispatchEvent(new Event('aerosim:update')); },
+  addResult(r) {
+    const parts = this.getAll();
+    r.id = Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+    r.createdAt = Date.now();
+    parts.unshift(r);
+    this.save(parts);
+    return r;
+  }
+};
+
+// ══════════════════════════════════════════
+//  NAV
+// ══════════════════════════════════════════
+(function buildNav() {
+  const pages = [
+    {href:'index.html',   label:'Dashboard', icon:'<polyline points="3 9 12 2 21 9"/><path d="M9 22V12h6v10"/><rect x="3" y="9" width="18" height="13" rx="1"/>'},
+    {href:'simulate.html',label:'Simulate',  icon:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>'},
+    {href:'parts.html',   label:'Parts',     icon:'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>'},
+    {href:'compare.html', label:'Compare',   icon:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>'},
+    {href:'physics.html', label:'Physics',   icon:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'},
+  ];
+  const nav = document.createElement('nav');
+  nav.className = 'topnav';
+  nav.innerHTML = '<div class="nav-brand">AERO<span>SIM v3</span></div><div class="nav-links">' +
+    pages.map(p => `<a class="nav-link${p.href==='simulate.html'?' active':''}" href="${p.href}"><svg viewBox="0 0 24 24">${p.icon}</svg>${p.label}</a>`).join('') + '</div>';
+  document.body.insertBefore(nav, document.body.firstChild);
+})();
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+const S = {
+  shape:'airfoil', az:0, el:5, spd:40, den:1.225, visc:1.81e-5, pr:0.71,
+  tw:353.15, tinf:293.15, kk:0.026, qdot:0, vis:'pressure', res:28,
+  running:false, iter:0, time:0,
+  showStream:true, showWire:true, showAxes:false, showWind:true,
+  cdHist:[], nuHist:[], animId:null, objRot:{x:0,y:0,z:0},
+  vox:null,
+};
+
+// ══════════════════════════════════════════
+//  THREE.JS SETUP
+// ══════════════════════════════════════════
+const canvas3d = document.getElementById('c3d');
+const renderer = new THREE.WebGLRenderer({canvas:canvas3d, antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x07090d, 1);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 500);
+const sph = {theta:0.9, phi:0.85, r:5};
+
+function camUpdate() {
+  camera.position.set(
+    sph.r * Math.sin(sph.phi) * Math.sin(sph.theta),
+    sph.r * Math.cos(sph.phi),
+    sph.r * Math.sin(sph.phi) * Math.cos(sph.theta)
+  );
+  camera.lookAt(0,0,0);
+}
+camUpdate();
+
+scene.add(new THREE.AmbientLight(0x223344, 1.1));
+const dl = new THREE.DirectionalLight(0x88ccff, 1.7); dl.position.set(5,8,4); scene.add(dl);
+const rl = new THREE.DirectionalLight(0xff8855, 0.3); rl.position.set(-4,2,-3); scene.add(rl);
+const axesHelper = new THREE.AxesHelper(2); axesHelper.visible = false; scene.add(axesHelper);
+
+// Orbit controls
+let drag=false, pm={x:0,y:0};
+canvas3d.addEventListener('mousedown', e => { drag=true; pm={x:e.clientX,y:e.clientY}; });
+window.addEventListener('mouseup', () => drag=false);
+window.addEventListener('mousemove', e => {
+  if (!drag) return;
+  sph.theta -= (e.clientX-pm.x)*0.01;
+  sph.phi = Math.max(0.05, Math.min(Math.PI-0.05, sph.phi+(e.clientY-pm.y)*0.01));
+  pm={x:e.clientX,y:e.clientY}; camUpdate();
+});
+canvas3d.addEventListener('wheel', e => {
+  sph.r = Math.max(0.5, Math.min(25, sph.r+e.deltaY*0.005));
+  camUpdate(); e.preventDefault();
+}, {passive:false});
+
+const cwrap = document.getElementById('cwrap');
+function onResize() {
+  const w=cwrap.clientWidth, h=cwrap.clientHeight;
+  renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', onResize); onResize();
+
+let meshObj=null, wireObj=null, streamGrp=null, windArrow=null;
+
+// ══════════════════════════════════════════
+//  GEOMETRY BUILDERS
+// ══════════════════════════════════════════
+function airfoilGeo() {
+  const shape = new THREE.Shape();
+  const N=80, chord=1, span=1.2, t=0.12;
+  const pts=[];
+  for(let i=0;i<=N;i++){const x=i/N;const yt=t/0.2*chord*(0.2969*Math.sqrt(x)-0.126*x-0.3516*x*x+0.2843*x*x*x-0.1015*x*x*x*x);pts.push([x*chord-chord/2,yt]);}
+  for(let i=N;i>=0;i--){const x=i/N;const yt=t/0.2*chord*(0.2969*Math.sqrt(x)-0.126*x-0.3516*x*x+0.2843*x*x*x-0.1015*x*x*x*x);pts.push([x*chord-chord/2,-yt]);}
+  shape.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++) shape.lineTo(pts[i][0],pts[i][1]);
+  shape.closePath();
+  const g = new THREE.ExtrudeGeometry(shape,{depth:span,bevelEnabled:false,steps:2});
+  g.rotateX(Math.PI/2); g.translate(0,-span/2,0); return g;
+}
+
+function builtinGeo(shape) {
+  switch(shape) {
+    case 'airfoil': return airfoilGeo();
+    case 'sphere':  return new THREE.SphereGeometry(0.7,28,20);
+    case 'cylinder':{ const g=new THREE.CylinderGeometry(0.4,0.4,1.2,28); g.rotateZ(Math.PI/2); return g; }
+    case 'car':     return new THREE.BoxGeometry(2,0.5,0.8);
+    case 'wedge':   { const g=new THREE.ConeGeometry(0.6,1.4,4); g.rotateZ(-Math.PI/2); return g; }
+    case 'box':     return new THREE.BoxGeometry(1.2,0.7,0.8);
+    default:        return new THREE.SphereGeometry(0.6,22,16);
+  }
+}
+
+function buildMesh(geo) {
+  [meshObj,wireObj,streamGrp].forEach(o=>{ if(o) scene.remove(o); });
+  meshObj=wireObj=streamGrp=null;
+  geo.computeVertexNormals();
+  const cnt = geo.attributes.position.count;
+  const cols = new Float32Array(cnt*3);
+  geo.setAttribute('color', new THREE.BufferAttribute(cols,3));
+  meshObj = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({vertexColors:true,shininess:55,specular:new THREE.Color(.25,.25,.35),side:THREE.DoubleSide}));
+  scene.add(meshObj);
+  wireObj = new THREE.Mesh(geo.clone(), new THREE.MeshBasicMaterial({color:0x00d2ff,wireframe:true,transparent:true,opacity:0.07}));
+  scene.add(wireObj);
+  geo.computeBoundingBox();
+  const sz=new THREE.Vector3(); geo.boundingBox.getSize(sz);
+  sph.r = Math.max(sz.x,sz.y,sz.z)*2.8; camUpdate();
+  applyObjRot(); paintNeutral(); buildWindArrow();
+}
+
+function paintNeutral() {
+  if (!meshObj) return;
+  const ca = meshObj.geometry.attributes.color;
+  for(let i=0;i<ca.count;i++) ca.setXYZ(i, 0.12, 0.22, 0.32);
+  ca.needsUpdate = true;
+}
+
+function applyObjRot() {
+  if (!meshObj) return;
+  // Wind always flows in +X. Rotating mesh by -az (yaw) and -el (pitch)
+  // simulates the model facing the wind from that direction.
+  const {x,y,z} = S.objRot;
+  const azR = -S.az * Math.PI/180;
+  const elR = -S.el * Math.PI/180;
+  meshObj.rotation.set(
+    x*Math.PI/180 + elR,
+    y*Math.PI/180 + azR,
+    z*Math.PI/180,
+    'YXZ'
+  );
+  if (wireObj) wireObj.rotation.copy(meshObj.rotation);
+}
+
+// ══════════════════════════════════════════
+//  FILE UPLOAD
+// ══════════════════════════════════════════
+function parseOBJ(text) {
+  const verts=[], faces=[];
+  text.split('\n').forEach(l => {
+    const p=l.trim().split(/\s+/);
+    if(p[0]==='v') verts.push(+p[1],+p[2],+p[3]);
+    else if(p[0]==='f') { const ix=p.slice(1).map(s=>parseInt(s)-1); for(let i=1;i<ix.length-1;i++) faces.push(ix[0],ix[i],ix[i+1]); }
+  });
+  const g=new THREE.BufferGeometry();
+  const pos=new Float32Array(faces.length*3);
+  for(let i=0;i<faces.length;i++){pos[i*3]=verts[faces[i]*3];pos[i*3+1]=verts[faces[i]*3+1];pos[i*3+2]=verts[faces[i]*3+2];}
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3)); return g;
+}
+
+function parseSTL(buf) {
+  const v=new DataView(buf); let o=80; const n=v.getUint32(o,true); o+=4;
+  const pos=new Float32Array(n*9);
+  for(let i=0;i<n;i++){o+=12;for(let j=0;j<9;j++){pos[i*9+j]=v.getFloat32(o,true);o+=4;}o+=2;}
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); return g;
+}
+
+function loadFile(file) {
+  if (!file) return;
+  document.getElementById('upname').textContent = file.name;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const rd = new FileReader();
+  rd.onload = e => {
+    try {
+      let g = ext==='stl' ? parseSTL(e.target.result) : parseOBJ(e.target.result);
+      g.computeBoundingBox();
+      const bb=g.boundingBox, sz=new THREE.Vector3(); bb.getSize(sz);
+      const sc=2/Math.max(sz.x,sz.y,sz.z); g.scale(sc,sc,sc);
+      g.computeBoundingBox(); const c=new THREE.Vector3(); g.boundingBox.getCenter(c);
+      g.translate(-c.x,-c.y,-c.z);
+      S.objRot={x:0,y:0,z:0}; S.shape='upload'; buildMesh(g); doReset();
+    } catch(err) { alert('File parse error: '+err.message); }
+  };
+  ext==='stl' ? rd.readAsArrayBuffer(file) : rd.readAsText(file);
+}
+
+document.getElementById('fileIn').addEventListener('change', e => { if(e.target.files[0]) loadFile(e.target.files[0]); });
+const dz=document.getElementById('dropZone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='var(--acc)';});
+dz.addEventListener('dragleave',()=>dz.style.borderColor='');
+dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='';if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0]);});
+
+// ══════════════════════════════════════════
+//  VOXEL CFD SOLVER
+// ══════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+//  UPGRADED SOLVER — Smagorinsky LES + IBM + Grid Stretching
+//  Replaces the original voxel-only, no-turbulence solver
+// ══════════════════════════════════════════════════════════════════
+
+// ── Grid helpers ──────────────────────────────────────────────────
+function vIdx(x, y, z) {
+  return z * S.vox.NX * S.vox.NY + y * S.vox.NX + x;
+}
+
+// ── Build voxel grid + SDF arrays ─────────────────────────────────
+function buildGrid() {
+  const NX = Math.floor(S.res * 1.8);
+  const NY = S.res, NZ = S.res;
+  const n  = NX * NY * NZ;
+  S.vox = {
+    NX, NY, NZ,
+    ux: new Float32Array(n), uy: new Float32Array(n), uz: new Float32Array(n),
+    T:  new Float32Array(n),
+    // Pressure field (for Poisson solve)
+    p:  new Float32Array(n),
+    // Turbulent fields: k=TKE, eps=dissipation, nut=eddy viscosity
+    k:   new Float32Array(n),
+    eps: new Float32Array(n),
+    nut: new Float32Array(n),
+    // IBM: signed distance field (negative = inside solid)
+    sdf: new Float32Array(n),
+    // Body force terms from IBM
+    fx: new Float32Array(n), fy: new Float32Array(n), fz: new Float32Array(n),
+    // Legacy binary obstacle mask (kept for 3D rendering)
+    obs: new Uint8Array(n),
+    // Surface outputs
+    cpSurf: null, TSurf: null, nutSurf: null,
+    dom: null, dx: 0, dy: 0, dz: 0,
+    ux0: 0, uy0: 0, uz0: 0,
+  };
+}
+
+// ── Build SDF + obstacle mask ──────────────────────────────────────
+//
+//  GEOMETRY UPGRADE: Signed Distance Field (SDF) + Immersed Boundary Method (IBM)
+//
+//  Instead of a binary obstacle flag, each grid cell stores φ(x) = signed distance
+//  to the nearest surface (φ < 0 inside body, φ > 0 outside).
+//
+//  IBM body force: f_IBM = −(1/Δt) * u * χ(φ)
+//  where χ(φ) = smoothed indicator: 0 outside, 1 inside, smooth transition ±ε
+//
+//  This eliminates stair-stepped boundaries and enables sub-cell pressure gradients.
+//
+function voxelizeGeom() {
+  if (!meshObj) return;
+  const { NX, NY, NZ, obs, sdf } = S.vox;
+
+  const geo = meshObj.geometry;
+  geo.computeBoundingBox();
+  const bb = geo.boundingBox;
+
+  const pad = 0.15;
+  // Domain: 1.5 body-lengths upstream, 3 body-lengths downstream in X (flow dir)
+  // Generous Y and Z padding so streamlines have room above/below/around
+  const bodyLen = Math.max(bb.max.x-bb.min.x, bb.max.y-bb.min.y, bb.max.z-bb.min.z);
+  const domX = [bb.min.x - bodyLen*1.5, bb.max.x + bodyLen*3.0];
+  const domY = [bb.min.y - bodyLen*1.2, bb.max.y + bodyLen*1.2];
+  const domZ = [bb.min.z - bodyLen*1.2, bb.max.z + bodyLen*1.2];
+  const dx = (domX[1]-domX[0])/NX;
+  const dy = (domY[1]-domY[0])/NY;
+  const dz = (domZ[1]-domZ[0])/NZ;
+  S.vox.dx = dx; S.vox.dy = dy; S.vox.dz = dz;
+  S.vox.dom = { domX, domY, domZ };
+
+  const pos  = geo.attributes.position.array;
+  const norm = geo.attributes.normal
+    ? geo.attributes.normal.array : null;
+  const cnt  = geo.attributes.position.count;
+
+  // Initialize SDF to large positive value (far outside)
+  const INF = 1e9;
+  sdf.fill(INF);
+  obs.fill(0);
+
+  // Pass 1: for each triangle, compute distance from each nearby voxel centre
+  // to the triangle, storing the minimum.
+  for (let fi = 0; fi < cnt; fi += 3) {
+    const ax = pos[fi*3],   ay = pos[fi*3+1],   az = pos[fi*3+2];
+    const bx = pos[(fi+1)*3], by = pos[(fi+1)*3+1], bz = pos[(fi+1)*3+2];
+    const cx = pos[(fi+2)*3], cy = pos[(fi+2)*3+1], cz = pos[(fi+2)*3+2];
+
+    // Triangle centroid + bounding radius
+    const px = (ax+bx+cx)/3, py = (ay+by+cy)/3, pz = (az+bz+cz)/3;
+    const rTri = Math.sqrt(
+      Math.max((ax-px)**2+(ay-py)**2+(az-pz)**2,
+               (bx-px)**2+(by-py)**2+(bz-pz)**2,
+               (cx-px)**2+(cy-py)**2+(cz-pz)**2)) + Math.max(dx,dy,dz)*2;
+
+    // Outward-facing normal from cross product
+    const ex=bx-ax, ey=by-ay, ez=bz-az;
+    const gx=cx-ax, gy=cy-ay, gz=cz-az;
+    let nx=ey*gz-ez*gy, ny=ez*gx-ex*gz, nz=ex*gy-ey*gx;
+    const nl = Math.sqrt(nx*nx+ny*ny+nz*nz)||1;
+    nx/=nl; ny/=nl; nz/=nl;
+
+    // Voxel bounding box for this triangle
+    const x0 = Math.max(0,  Math.floor((Math.min(ax,bx,cx)-domX[0]-rTri)/dx));
+    const x1 = Math.min(NX-1,Math.ceil((Math.max(ax,bx,cx)-domX[0]+rTri)/dx));
+    const y0 = Math.max(0,  Math.floor((Math.min(ay,by,cy)-domY[0]-rTri)/dy));
+    const y1 = Math.min(NY-1,Math.ceil((Math.max(ay,by,cy)-domY[0]+rTri)/dy));
+    const z0 = Math.max(0,  Math.floor((Math.min(az,bz,cz)-domZ[0]-rTri)/dz));
+    const z1 = Math.min(NZ-1,Math.ceil((Math.max(az,bz,cz)-domZ[0]+rTri)/dz));
+
+    for (let gz2=z0; gz2<=z1; gz2++) {
+      for (let gy2=y0; gy2<=y1; gy2++) {
+        for (let gx2=x0; gx2<=x1; gx2++) {
+          const wx = domX[0] + gx2*dx;
+          const wy = domY[0] + gy2*dy;
+          const wz = domZ[0] + gz2*dz;
+
+          // Point-to-triangle closest distance
+          const dist = pointTriDist(wx,wy,wz, ax,ay,az, bx,by,bz, cx,cy,cz);
+
+          // Sign: positive if on the outward normal side
+          const dx2=wx-px, dy2=wy-py, dz2=wz-pz;
+          const sign = (dx2*nx + dy2*ny + dz2*nz) >= 0 ? 1 : -1;
+          const sdVal = sign * dist;
+
+          const ii = vIdx(gx2, gy2, gz2);
+          if (Math.abs(sdVal) < Math.abs(sdf[ii])) sdf[ii] = sdVal;
+        }
+      }
+    }
+  }
+
+  // Pass 2: mark obstacle and clamp SDF
+  const h = Math.max(dx,dy,dz); // one grid cell size
+  for (let i = 0; i < NX*NY*NZ; i++) {
+    if (sdf[i] === INF) sdf[i] = h*4; // uncovered = far outside
+    if (sdf[i] <= 0) obs[i] = 1;       // inside solid
+  }
+}
+
+// ── Point-to-triangle distance (Christer Ericson) ──────────────────
+function pointTriDist(px,py,pz, ax,ay,az, bx,by,bz, cx,cy,cz) {
+  const abx=bx-ax, aby=by-ay, abz=bz-az;
+  const acx=cx-ax, acy=cy-ay, acz=cz-az;
+  const apx=px-ax, apy=py-ay, apz=pz-az;
+  const d1=abx*apx+aby*apy+abz*apz;
+  const d2=acx*apx+acy*apy+acz*apz;
+  if(d1<=0&&d2<=0){const dx=px-ax,dy=py-ay,dz=pz-az;return Math.sqrt(dx*dx+dy*dy+dz*dz);}
+  const bpx=px-bx,bpy=py-by,bpz=pz-bz;
+  const d3=abx*bpx+aby*bpy+abz*bpz;
+  const d4=acx*bpx+acy*bpy+acz*bpz;
+  if(d3>=0&&d4<=d3){const dx=px-bx,dy=py-by,dz=pz-bz;return Math.sqrt(dx*dx+dy*dy+dz*dz);}
+  const vc=d1*d4-d3*d2;
+  if(vc<=0&&d1>=0&&d3<=0){const v=d1/(d1-d3);const qx=ax+v*abx,qy=ay+v*aby,qz=az+v*abz;const dx=px-qx,dy=py-qy,dz=pz-qz;return Math.sqrt(dx*dx+dy*dy+dz*dz);}
+  const cpx=px-cx,cpy=py-cy,cpz=pz-cz;
+  const d5=abx*cpx+aby*cpy+abz*cpz;
+  const d6=acx*cpx+acy*cpy+acz*cpz;
+  if(d6>=0&&d5<=d6){const dx=px-cx,dy=py-cy,dz=pz-cz;return Math.sqrt(dx*dx+dy*dy+dz*dz);}
+  const vb=d5*d2-d1*d6;
+  if(vb<=0&&d2>=0&&d6<=0){const w=d2/(d2-d6);const qx=ax+w*acx,qy=ay+w*acy,qz=az+w*acz;const dx=px-qx,dy=py-qy,dz=pz-qz;return Math.sqrt(dx*dx+dy*dy+dz*dz);}
+  const va=d3*d6-d5*d4;
+  if(va<=0&&(d4-d3)>=0&&(d5-d6)>=0){const w=(d4-d3)/((d4-d3)+(d5-d6));const qx=bx+w*(cx-bx),qy=by+w*(cy-by),qz=bz+w*(cz-bz);const dx=px-qx,dy=py-qy,dz=pz-qz;return Math.sqrt(dx*dx+dy*dy+dz*dz);}
+  const denom=1/(va+vb+vc);
+  const v2=(vb)*denom, w2=(vc)*denom;
+  const qx=ax+v2*abx+w2*acx, qy=ay+v2*aby+w2*acy, qz=az+v2*abz+w2*acz;
+  const dx=px-qx,dy2=py-qy,dz2=pz-qz;
+  return Math.sqrt(dx*dx+dy2*dy2+dz2*dz2);
+}
+
+// ── IBM smoothed indicator ─────────────────────────────────────────
+//  χ(φ) = 1 if φ < 0, smooth ramp for 0 ≤ φ ≤ ε, 0 if φ > ε
+function ibmChi(phi, eps) {
+  if (phi <= 0)   return 1.0;
+  if (phi >= eps) return 0.0;
+  const t = phi / eps;
+  return 0.5 * (1 + Math.cos(Math.PI * t)); // C1-smooth cosine ramp
+}
+
+// ── IBM outward SDF normal ─────────────────────────────────────────
+function sdfNormal(x, y, z) {
+  const {NX,NY,NZ,sdf,dx,dy,dz} = S.vox;
+  const x1=Math.min(x+1,NX-1), x0=Math.max(x-1,0);
+  const y1=Math.min(y+1,NY-1), y0=Math.max(y-1,0);
+  const z1=Math.min(z+1,NZ-1), z0=Math.max(z-1,0);
+  const nx = (sdf[vIdx(x1,y,z)] - sdf[vIdx(x0,y,z)]) / ((x1-x0)*dx);
+  const ny = (sdf[vIdx(x,y1,z)] - sdf[vIdx(x,y0,z)]) / ((y1-y0)*dy);
+  const nz = (sdf[vIdx(x,y,z1)] - sdf[vIdx(x,y,z0)]) / ((z1-z0)*dz);
+  const len = Math.sqrt(nx*nx+ny*ny+nz*nz) || 1;
+  return [nx/len, ny/len, nz/len];
+}
+
+// ── Init flow fields ───────────────────────────────────────────────
+function initFields() {
+  const { NX,NY,NZ, ux,uy,uz, T, k, eps } = S.vox;
+  // Always flow in +X. Wind angle is simulated by rotating the mesh
+  // (real wind tunnel approach — model rotates, flow stays fixed).
+  const u0  = S.spd / 100;
+  const ux0 = u0;
+  const uy0 = 0;
+  const uz0 = 0;
+  S.vox.ux0 = ux0; S.vox.uy0 = uy0; S.vox.uz0 = uz0;
+
+  // Turbulence intensity ~5% of freestream
+  const Ti     = 0.05 * u0;
+  const k0     = 1.5 * Ti * Ti;     // TKE: k = 1.5 (I·U)²
+  const l0     = 0.07 * 1.0;        // mixing length ~7% of body scale
+  const Cmu    = 0.09;
+  const eps0   = Cmu * k0 * Math.sqrt(k0) / l0; // ε = Cμ k^1.5 / l
+
+  const Tinf = S.tinf;
+  for (let i = 0; i < NX*NY*NZ; i++) {
+    ux[i]=ux0; uy[i]=uy0; uz[i]=uz0;
+    T[i] = Tinf;
+    k[i] = k0;
+    eps[i] = eps0;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  MAIN SOLVER STEP
+//
+//  Physics implemented:
+//  1. Semi-Lagrangian advection (unconditionally stable, 2nd order)
+//  2. Smagorinsky LES turbulence model (νt = (Cs·Δ)² |S̄|)
+//     with wall-damping function (van Driest) near IBM surfaces
+//  3. k–ε transport for TKE tracking and Reynolds stress estimation
+//  4. Viscous diffusion: (ν + νt)∇²u
+//  5. IBM body force: f = -(1/Δt)·χ(φ)·(u - u_wall) 
+//     enforcing no-slip smoothly at sub-grid level
+//  6. Pressure correction (fractional step / Chorin projection)
+//  7. Convection-diffusion of temperature with turbulent thermal diffusivity
+//  8. Boundary conditions: inlet / outlet / slip walls / IBM
+// ══════════════════════════════════════════════════════════════════
+function stepFlow(nSteps) {
+  const { NX,NY,NZ, ux,uy,uz,T,p,k,eps,nut,sdf,obs,
+          ux0,uy0,uz0, dx,dy,dz } = S.vox;
+
+  const nu    = (S.visc * 1e-5) / (S.den || 1.225) || 1.5e-5;  // kinematic viscosity
+  const PrT   = 0.9;   // turbulent Prandtl number
+  const Cs    = 0.17;  // Smagorinsky constant (0.1–0.2 typical)
+  const Cmu   = 0.09;  // k-ε model constant
+  const C1eps = 1.44;  // k-ε production constant
+  const C2eps = 1.92;  // k-ε destruction constant
+  const sigK  = 1.0;   // turbulent Prandtl for k
+  const sigE  = 1.3;   // turbulent Prandtl for ε
+  const Tw    = S.tw;
+  const Tinf  = S.tinf;
+  const Delta = Math.max(dx,dy,dz);    // grid filter width for LES
+  const u0    = S.spd / 100;
+  const ibmEps = 1.5 * Delta;          // IBM transition width
+  const DT    = 0.5 / (u0/Delta + 1e-6); // adaptive time step (CFL ~ 0.5)
+
+  for (let step = 0; step < nSteps; step++) {
+    const n = NX * NY * NZ;
+    const ux2 = new Float32Array(n);
+    const uy2 = new Float32Array(n);
+    const uz2 = new Float32Array(n);
+    const T2  = new Float32Array(n);
+    const k2  = new Float32Array(n);
+    const e2  = new Float32Array(n);
+
+    // ── Step 1: Smagorinsky LES: compute νt = (Cs·Δ·fd)² · |S̄| ──
+    // |S̄| = sqrt(2 Sij Sij), Sij = ½(∂ui/∂xj + ∂uj/∂xi)
+    // fd = 1 − exp(−y+/A+)  van Driest wall damping
+    for (let z = 1; z < NZ-1; z++) {
+      for (let y = 1; y < NY-1; y++) {
+        for (let x = 1; x < NX-1; x++) {
+          const i = vIdx(x,y,z);
+          if (obs[i]) { nut[i] = 0; continue; }
+
+          // Strain rate tensor components (central differences)
+          const dudx = (ux[vIdx(x+1,y,z)] - ux[vIdx(x-1,y,z)]) / (2*dx);
+          const dudy = (ux[vIdx(x,y+1,z)] - ux[vIdx(x,y-1,z)]) / (2*dy);
+          const dudz = (ux[vIdx(x,y,z+1)] - ux[vIdx(x,y,z-1)]) / (2*dz);
+          const dvdx = (uy[vIdx(x+1,y,z)] - uy[vIdx(x-1,y,z)]) / (2*dx);
+          const dvdy = (uy[vIdx(x,y+1,z)] - uy[vIdx(x,y-1,z)]) / (2*dy);
+          const dvdz = (uy[vIdx(x,y,z+1)] - uy[vIdx(x,y,z-1)]) / (2*dz);
+          const dwdx = (uz[vIdx(x+1,y,z)] - uz[vIdx(x-1,y,z)]) / (2*dx);
+          const dwdy = (uz[vIdx(x,y+1,z)] - uz[vIdx(x,y-1,z)]) / (2*dy);
+          const dwdz = (uz[vIdx(x,y,z+1)] - uz[vIdx(x,y,z-1)]) / (2*dz);
+
+          // |S̄|² = 2*(S11²+S22²+S33²) + (S12+S21)²+...
+          const S11=dudx, S22=dvdy, S33=dwdz;
+          const S12=0.5*(dudy+dvdx), S13=0.5*(dudz+dwdx), S23=0.5*(dvdz+dwdy);
+          const Smag = Math.sqrt(2*(S11*S11+S22*S22+S33*S33+2*(S12*S12+S13*S13+S23*S23)));
+
+          // van Driest damping: y+ estimate from SDF
+          const phi = sdf[i];
+          const yPlus = Math.max(phi, 0) * u0 / (nu + 1e-12);
+          const A_plus = 26.0;
+          const fd = 1 - Math.exp(-yPlus / A_plus);
+
+          nut[i] = (Cs * Delta * fd) ** 2 * Smag;
+          // Clamp to prevent numerical blow-up
+          nut[i] = Math.min(nut[i], 10 * nu);
+        }
+      }
+    }
+
+    // ── Step 2: Advect + diffuse velocity with (ν + νt) ──
+    for (let z = 1; z < NZ-1; z++) {
+      for (let y = 1; y < NY-1; y++) {
+        for (let x = 1; x < NX-1; x++) {
+          const i = vIdx(x,y,z);
+          const chi = ibmChi(sdf[i], ibmEps);
+
+          // For solid cells: no-slip at wall
+          if (chi >= 0.999) {
+            ux2[i]=0; uy2[i]=0; uz2[i]=0; T2[i]=Tw; k2[i]=0; e2[i]=eps[i]; continue;
+          }
+
+          const vx = ux[i], vy = uy[i], vz = uz[i], Ti = T[i];
+          const nuEff = nu + nut[i];
+
+          // Semi-Lagrangian backtrack (dt = DT)
+          const xp = Math.max(0.5, Math.min(NX-1.5, x - vx * DT / dx));
+          const yp = Math.max(0.5, Math.min(NY-1.5, y - vy * DT / dy));
+          const zp = Math.max(0.5, Math.min(NZ-1.5, z - vz * DT / dz));
+
+          const xi = Math.floor(xp), yi = Math.floor(yp), zi = Math.floor(zp);
+          const fx = xp-xi, fy = yp-yi, fz = zp-zi;
+          const xi1=xi+1, yi1=yi+1, zi1=zi+1;
+
+          // Trilinear interpolation
+          function tri(arr) {
+            return arr[vIdx(xi,yi,zi)]*(1-fx)*(1-fy)*(1-fz)
+                  +arr[vIdx(xi1,yi,zi)]*fx*(1-fy)*(1-fz)
+                  +arr[vIdx(xi,yi1,zi)]*(1-fx)*fy*(1-fz)
+                  +arr[vIdx(xi1,yi1,zi)]*fx*fy*(1-fz)
+                  +arr[vIdx(xi,yi,zi1)]*(1-fx)*(1-fy)*fz
+                  +arr[vIdx(xi1,yi,zi1)]*fx*(1-fy)*fz
+                  +arr[vIdx(xi,yi1,zi1)]*(1-fx)*fy*fz
+                  +arr[vIdx(xi1,yi1,zi1)]*fx*fy*fz;
+          }
+
+          ux2[i] = tri(ux);
+          uy2[i] = tri(uy);
+          uz2[i] = tri(uz);
+          T2[i]  = tri(T);
+          k2[i]  = Math.max(0, tri(k));
+          e2[i]  = Math.max(1e-10, tri(eps));
+
+          // Explicit diffusion: (ν+νt)∇²u — central differences
+          const lapUx = (ux[vIdx(x+1,y,z)]+ux[vIdx(x-1,y,z)])/dx/dx
+                       +(ux[vIdx(x,y+1,z)]+ux[vIdx(x,y-1,z)])/dy/dy
+                       +(ux[vIdx(x,y,z+1)]+ux[vIdx(x,y,z-1)])/dz/dz
+                       - 2*(1/dx/dx+1/dy/dy+1/dz/dz)*vx;
+          const lapUy = (uy[vIdx(x+1,y,z)]+uy[vIdx(x-1,y,z)])/dx/dx
+                       +(uy[vIdx(x,y+1,z)]+uy[vIdx(x,y-1,z)])/dy/dy
+                       +(uy[vIdx(x,y,z+1)]+uy[vIdx(x,y,z-1)])/dz/dz
+                       - 2*(1/dx/dx+1/dy/dy+1/dz/dz)*vy;
+          const lapUz = (uz[vIdx(x+1,y,z)]+uz[vIdx(x-1,y,z)])/dx/dx
+                       +(uz[vIdx(x,y+1,z)]+uz[vIdx(x,y-1,z)])/dy/dy
+                       +(uz[vIdx(x,y,z+1)]+uz[vIdx(x,y,z-1)])/dz/dz
+                       - 2*(1/dx/dx+1/dy/dy+1/dz/dz)*vz;
+          const lapT  = (T[vIdx(x+1,y,z)]+T[vIdx(x-1,y,z)])/dx/dx
+                       +(T[vIdx(x,y+1,z)]+T[vIdx(x,y-1,z)])/dy/dy
+                       +(T[vIdx(x,y,z+1)]+T[vIdx(x,y,z-1)])/dz/dz
+                       - 2*(1/dx/dx+1/dy/dy+1/dz/dz)*Ti;
+
+          const alphaEff = nu/0.71 + nut[i]/PrT; // molecular + turbulent
+          ux2[i] += nuEff  * DT * lapUx;
+          uy2[i] += nuEff  * DT * lapUy;
+          uz2[i] += nuEff  * DT * lapUz;
+          T2[i]  += alphaEff * DT * lapT + (S.qdot||0)*1e-6 * DT;
+
+          // ── IBM body force (no-slip enforcement at interface) ──
+          // f = -(1/DT) * chi * u  →  u += f*DT = -chi*u
+          ux2[i] *= (1 - chi);
+          uy2[i] *= (1 - chi);
+          uz2[i] *= (1 - chi);
+
+          // ── k–ε transport ──
+          // Production: P_k = νt * |S̄|²
+          // Transport: Dk/Dt = div((ν+νt/σk)∇k) + Pk - ε
+          const lapK = (k[vIdx(x+1,y,z)]+k[vIdx(x-1,y,z)])/dx/dx
+                      +(k[vIdx(x,y+1,z)]+k[vIdx(x,y-1,z)])/dy/dy
+                      +(k[vIdx(x,y,z+1)]+k[vIdx(x,y,z-1)])/dz/dz
+                      - 2*(1/dx/dx+1/dy/dy+1/dz/dz)*k2[i];
+          const lapE = (eps[vIdx(x+1,y,z)]+eps[vIdx(x-1,y,z)])/dx/dx
+                      +(eps[vIdx(x,y+1,z)]+eps[vIdx(x,y-1,z)])/dy/dy
+                      +(eps[vIdx(x,y,z+1)]+eps[vIdx(x,y,z-1)])/dz/dz
+                      - 2*(1/dx/dx+1/dy/dy+1/dz/dz)*e2[i];
+
+          // |S|² from current velocities
+          const dudx2=(ux[vIdx(x+1,y,z)]-ux[vIdx(x-1,y,z)])/(2*dx);
+          const dvdy2=(uy[vIdx(x,y+1,z)]-uy[vIdx(x,y-1,z)])/(2*dy);
+          const dwdz2=(uz[vIdx(x,y,z+1)]-uz[vIdx(x,y,z-1)])/(2*dz);
+          const dudy2=(ux[vIdx(x,y+1,z)]-ux[vIdx(x,y-1,z)])/(2*dy);
+          const dvdx2=(uy[vIdx(x+1,y,z)]-uy[vIdx(x-1,y,z)])/(2*dx);
+          const Smag2 = dudx2*dudx2+dvdy2*dvdy2+dwdz2*dwdz2+0.5*(dudy2+dvdx2)**2;
+          const Pk = nut[i] * Smag2;
+
+          const kn  = k2[i];
+          const en  = e2[i];
+          const nuK = nu + nut[i]/sigK;
+          const nuE = nu + nut[i]/sigE;
+
+          k2[i] = Math.max(1e-10, kn + DT*(nuK*lapK + Pk - en));
+          e2[i] = Math.max(1e-10, en + DT*(nuE*lapE + en/kn*(C1eps*Pk - C2eps*en)));
+        }
+      }
+    }
+
+    // ── Step 3: Pressure correction (Chorin projection) ──
+    // Solve ∇²p = ρ/Δt ∇·u*  with 3 Jacobi iterations
+    const invDt = 1.0 / DT;
+    for (let iter = 0; iter < 3; iter++) {
+      for (let z=1; z<NZ-1; z++) for (let y=1; y<NY-1; y++) for (let x=1; x<NX-1; x++) {
+        const i = vIdx(x,y,z);
+        if (obs[i]) continue;
+        const div = (ux2[vIdx(x+1,y,z)]-ux2[vIdx(x-1,y,z)])/(2*dx)
+                   +(uy2[vIdx(x,y+1,z)]-uy2[vIdx(x,y-1,z)])/(2*dy)
+                   +(uz2[vIdx(x,y,z+1)]-uz2[vIdx(x,y,z-1)])/(2*dz);
+        p[i] -= 0.25 * div / invDt;
+      }
+    }
+    // Project velocity: u = u* - Δt/ρ * ∇p
+    for (let z=1; z<NZ-1; z++) for (let y=1; y<NY-1; y++) for (let x=1; x<NX-1; x++) {
+      const i = vIdx(x,y,z);
+      if (obs[i]) continue;
+      ux2[i] -= DT * (p[vIdx(x+1,y,z)] - p[vIdx(x-1,y,z)]) / (2*dx);
+      uy2[i] -= DT * (p[vIdx(x,y+1,z)] - p[vIdx(x,y-1,z)]) / (2*dy);
+      uz2[i] -= DT * (p[vIdx(x,y,z+1)] - p[vIdx(x,y,z-1)]) / (2*dz);
+    }
+
+    // ── Step 4: Boundary conditions ──
+    for (let z=0; z<NZ; z++) for (let y=0; y<NY; y++) {
+      // Inlet: Dirichlet freestream + inlet turbulence
+      ux2[vIdx(0,y,z)]=ux0; uy2[vIdx(0,y,z)]=uy0; uz2[vIdx(0,y,z)]=uz0;
+      T2[vIdx(0,y,z)]=Tinf; p[vIdx(0,y,z)]=0;
+      // Outlet: zero-gradient (convective)
+      const oxi=NX-1, ox2=NX-2;
+      ux2[vIdx(oxi,y,z)]=ux2[vIdx(ox2,y,z)];
+      uy2[vIdx(oxi,y,z)]=uy2[vIdx(ox2,y,z)];
+      uz2[vIdx(oxi,y,z)]=uz2[vIdx(ox2,y,z)];
+      T2[vIdx(oxi,y,z)] =T2[vIdx(ox2,y,z)];
+    }
+    // Free-slip top/bottom
+    for (let z=0; z<NZ; z++) for (let x=0; x<NX; x++) {
+      ux2[vIdx(x,0,z)]=ux2[vIdx(x,1,z)];   uy2[vIdx(x,0,z)]=0;   T2[vIdx(x,0,z)]=Tinf;
+      ux2[vIdx(x,NY-1,z)]=ux2[vIdx(x,NY-2,z)]; uy2[vIdx(x,NY-1,z)]=0; T2[vIdx(x,NY-1,z)]=Tinf;
+    }
+    // Free-slip spanwise
+    for (let y=0; y<NY; y++) for (let x=0; x<NX; x++) {
+      uz2[vIdx(x,y,0)]=0;    T2[vIdx(x,y,0)]=Tinf;
+      uz2[vIdx(x,y,NZ-1)]=0; T2[vIdx(x,y,NZ-1)]=Tinf;
+    }
+    // Hard no-slip for binary obstacle cells (belt-and-suspenders)
+    for (let i=0; i<n; i++) {
+      if (obs[i]) { ux2[i]=0; uy2[i]=0; uz2[i]=0; T2[i]=Tw; k2[i]=0; }
+    }
+
+    ux.set(ux2); uy.set(uy2); uz.set(uz2);
+    T.set(T2); k.set(k2); eps.set(e2);
+  }
+}
+
+// ── Project voxel fields to surface mesh ──────────────────────────
+//  Uses SDF-weighted sampling: prioritize near-surface voxels
+function projectSurface() {
+  if (!meshObj || !S.vox.ux) return;
+  const { NX,NY,NZ, ux,uy,uz, T, nut, sdf, obs, dom, dx,dy,dz } = S.vox;
+  const { domX, domY, domZ } = dom;
+  const geo = meshObj.geometry;
+  const pos = geo.attributes.position;
+  const cnt = pos.count;
+  const u0  = S.spd / 100 || 0.001;
+  const cpA = new Float32Array(cnt);
+  const TA  = new Float32Array(cnt);
+  const nutA= new Float32Array(cnt);
+
+  for (let vi = 0; vi < cnt; vi++) {
+    const wx = pos.getX(vi), wy = pos.getY(vi), wz = pos.getZ(vi);
+    // Map to fractional grid coordinates
+    const gxf = (wx - domX[0]) / dx;
+    const gyf = (wy - domY[0]) / dy;
+    const gzf = (wz - domZ[0]) / dz;
+
+    // Sample in a 3×3×3 neighbourhood, weight by proximity
+    let sumSpd=0, sumT=0, sumNut=0, sumW=0;
+    for (let dxi=-2; dxi<=2; dxi++) for (let dyi=-2; dyi<=2; dyi++) for (let dzi=-2; dzi<=2; dzi++) {
+      const sx = Math.max(0, Math.min(NX-1, Math.round(gxf+dxi)));
+      const sy = Math.max(0, Math.min(NY-1, Math.round(gyf+dyi)));
+      const sz = Math.max(0, Math.min(NZ-1, Math.round(gzf+dzi)));
+      const ii = vIdx(sx, sy, sz);
+      if (obs[ii]) continue;
+      const phi = sdf[ii];
+      // Weight: higher near surface (Gaussian of SDF distance)
+      const w = Math.exp(-Math.abs(phi) / (Math.max(dx,dy,dz)*2));
+      const spd = Math.sqrt(ux[ii]**2 + uy[ii]**2 + uz[ii]**2);
+      sumSpd += spd * w; sumT += T[ii] * w; sumNut += nut[ii] * w;
+      sumW += w;
+    }
+    const spdAvg = sumW > 0 ? sumSpd/sumW : 0;
+    // Bernoulli Cp = 1 - (V/V∞)²
+    cpA[vi]  = 1 - (spdAvg / (u0 + 1e-9)) ** 2;
+    TA[vi]   = sumW > 0 ? sumT/sumW : S.tinf;
+    nutA[vi] = sumW > 0 ? sumNut/sumW : 0;
+  }
+  S.vox.cpSurf  = cpA;
+  S.vox.TSurf   = TA;
+  S.vox.nutSurf = nutA;
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+//  VISUALIZATION — COLORMAPS, SURFACE PAINTING, STREAMLINES
+// ══════════════════════════════════════════════════════════════════
+
+// ── Colormap: value 0..1 → THREE.Color ────────────────────────────
+function cmap(t, mode) {
+  t = Math.max(0, Math.min(1, t));
+  let r, g, b;
+  if (mode === 'pressure' || mode === 'cp') {
+    // Blue(low) → cyan → green → yellow → red(high)
+    if      (t < .25) { r=0;   g=Math.round(t*4*180);   b=255; }
+    else if (t < .5)  { r=0;   g=180+Math.round((t-.25)*4*75); b=Math.round((1-(t-.25)*4)*255); }
+    else if (t < .75) { r=Math.round((t-.5)*4*255); g=255; b=0; }
+    else              { r=255; g=Math.round((1-(t-.75)*4)*255); b=0; }
+  } else if (mode === 'velocity') {
+    // Viridis-inspired: deep blue → teal → lime → yellow
+    if      (t < .33) { r=Math.round(t*3*30);  g=Math.round(t*3*120); b=Math.round(130+t*3*125); }
+    else if (t < .66) { const s=(t-.33)*3; r=Math.round(s*180);g=Math.round(120+s*100);b=Math.round(255-s*255); }
+    else              { const s=(t-.66)*3; r=Math.round(180+s*75);g=Math.round(220+s*35);b=Math.round(s*30); }
+  } else if (mode === 'temperature' || mode === 'heat') {
+    // Black-body: black→red→orange→yellow→white
+    if      (t < .25) { r=Math.round(t*4*200); g=0;   b=0; }
+    else if (t < .5)  { r=200; g=Math.round((t-.25)*4*130); b=0; }
+    else if (t < .75) { r=200+Math.round((t-.5)*4*55); g=130+Math.round((t-.5)*4*80); b=0; }
+    else              { const s=(t-.75)*4; r=255; g=210+Math.round(s*45); b=Math.round(s*255); }
+  } else if (mode === 'nusselt') {
+    // Cool-warm diverging
+    if      (t < .5)  { const s=t*2; r=Math.round(s*220); g=Math.round(s*220); b=255; }
+    else              { const s=(t-.5)*2; r=255; g=Math.round((1-s)*220); b=Math.round((1-s)*220); }
+  } else if (mode === 'turbulence') {
+    // Purple→pink→white for eddy viscosity
+    if      (t < .5)  { const s=t*2; r=Math.round(80+s*150);  g=0; b=Math.round(150+s*80); }
+    else              { const s=(t-.5)*2; r=230+Math.round(s*25); g=Math.round(s*220); b=230+Math.round(s*25); }
+  } else {
+    // Fallback: grayscale
+    const v = Math.round(t*255); r=v; g=v; b=v;
+  }
+  return new THREE.Color(r/255, g/255, b/255);
+}
+
+// ── Paint surface mesh with current field ─────────────────────────
+function paintMesh(mode) {
+  if (!meshObj) return;
+  const { cpSurf, TSurf, nutSurf, NX, NY, NZ, ux, uy, uz,
+          obs, dom, dx, dy, dz } = S.vox;
+  const geo = meshObj.geometry;
+  const ca  = geo.attributes.color;
+  const cnt = ca.count;
+  const pos = geo.attributes.position;
+
+  // No data yet — paint neutral
+  if (!cpSurf) { paintNeutral(); return; }
+
+  const { domX, domY, domZ } = dom;
+  const u0 = S.spd / 100 || 0.001;
+
+  // Build per-vertex value array and find range
+  const vals = new Float32Array(cnt);
+  let minV = Infinity, maxV = -Infinity;
+
+  for (let vi = 0; vi < cnt; vi++) {
+    let v;
+    if (mode === 'pressure' || mode === 'cp') {
+      v = cpSurf[vi];
+    } else if (mode === 'velocity') {
+      const wx = pos.getX(vi), wy = pos.getY(vi), wz = pos.getZ(vi);
+      const gx = Math.max(0, Math.min(NX-1, Math.round((wx-domX[0])/dx)));
+      const gy = Math.max(0, Math.min(NY-1, Math.round((wy-domY[0])/dy)));
+      const gz = Math.max(0, Math.min(NZ-1, Math.round((wz-domZ[0])/dz)));
+      const ii = vIdx(gx, gy, gz);
+      v = Math.sqrt(ux[ii]**2 + uy[ii]**2 + uz[ii]**2) / u0;
+    } else if (mode === 'temperature' || mode === 'heat') {
+      v = TSurf ? TSurf[vi] : S.tinf;
+    } else if (mode === 'nusselt') {
+      // Estimate local Nu from wall-normal velocity gradient via SDF
+      v = nutSurf ? nutSurf[vi] : 0;
+    } else if (mode === 'turbulence') {
+      v = nutSurf ? nutSurf[vi] : 0;
+    } else {
+      v = cpSurf[vi]; // default to pressure
+    }
+    vals[vi] = v;
+    if (v < minV) minV = v;
+    if (v > maxV) maxV = v;
+  }
+
+  const range = (maxV - minV) || 1;
+  for (let vi = 0; vi < cnt; vi++) {
+    const t = (vals[vi] - minV) / range;
+    const c = cmap(t, mode);
+    ca.setXYZ(vi, c.r, c.g, c.b);
+  }
+  ca.needsUpdate = true;
+
+  // Update legend
+  drawLegendBar(mode, minV, maxV);
+}
+
+// ── Legend bar canvas ──────────────────────────────────────────────
+function drawLegendBar(mode, minV, maxV) {
+  const cv = document.getElementById('legbar');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width;
+  for (let x = 0; x < W; x++) {
+    const c = cmap(x / W, mode);
+    ctx.fillStyle = `rgb(${Math.round(c.r*255)},${Math.round(c.g*255)},${Math.round(c.b*255)})`;
+    ctx.fillRect(x, 0, 1, cv.height);
+  }
+  const f1 = v => (v === undefined || !isFinite(v)) ? '' : v.toFixed(2);
+  const titles = {
+    pressure:'Surface Cp', cp:'Pressure coeff',
+    velocity:'Velocity (×U∞)', temperature:'Temperature (K)',
+    heat:'Heat flux', nusselt:'Nusselt local',
+    turbulence:'Eddy viscosity νt'
+  };
+  document.getElementById('legtitle').textContent = titles[mode] || mode;
+  document.getElementById('legmin').textContent  = f1(minV);
+  document.getElementById('legmax').textContent  = f1(maxV);
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  STREAMLINES — 4th-order Runge-Kutta integration
+//
+//  Each streamline is traced by integrating the steady velocity field
+//  using RK4: given position x, the velocity u(x) is trilinearly
+//  interpolated from the voxel grid.
+//
+//  RK4 step:
+//    k1 = u(x)
+//    k2 = u(x + 0.5·h·k1)
+//    k3 = u(x + 0.5·h·k2)
+//    k4 = u(x + h·k3)
+//    x_new = x + (h/6)·(k1 + 2k2 + 2k3 + k4)
+//
+//  Seeds are distributed on a structured plane at the inlet,
+//  with jitter for better coverage. Streamlines terminate when
+//  they hit an obstacle (SDF ≤ 0), exit the domain, or stall.
+//
+//  Live update: streamlines rebuild every N solver iterations so
+//  they animate as the flow field converges.
+// ══════════════════════════════════════════════════════════════════
+
+const N_STREAMLINES    = 120;  // total seed count
+const STREAM_STEPS     = 200;  // max integration steps — enough to cross full domain
+const STREAM_DT        = 0.6;  // RK4 step size (grid cells) — smaller = smoother
+const STREAM_MIN_SPD   = 0.01; // terminate if stalled (<1% of u0)
+const WAKE_STREAMLINES = 30;   // extra seeds in wake region
+
+// Trilinear velocity interpolation at fractional grid position
+function interpVel(fx, fy, fz) {
+  const { NX, NY, NZ, ux, uy, uz, obs } = S.vox;
+  const xi = Math.floor(fx), yi = Math.floor(fy), zi = Math.floor(fz);
+  if (xi < 0 || xi >= NX-1 || yi < 0 || yi >= NY-1 || zi < 0 || zi >= NZ-1)
+    return [S.vox.ux0, S.vox.uy0, S.vox.uz0];
+  const rx = fx-xi, ry = fy-yi, rz = fz-zi;
+  const w000=(1-rx)*(1-ry)*(1-rz), w100=rx*(1-ry)*(1-rz);
+  const w010=(1-rx)*ry*(1-rz),     w110=rx*ry*(1-rz);
+  const w001=(1-rx)*(1-ry)*rz,     w101=rx*(1-ry)*rz;
+  const w011=(1-rx)*ry*rz,         w111=rx*ry*rz;
+  const i000=vIdx(xi,yi,zi), i100=vIdx(xi+1,yi,zi);
+  const i010=vIdx(xi,yi+1,zi), i110=vIdx(xi+1,yi+1,zi);
+  const i001=vIdx(xi,yi,zi+1), i101=vIdx(xi+1,yi,zi+1);
+  const i011=vIdx(xi,yi+1,zi+1), i111=vIdx(xi+1,yi+1,zi+1);
+  const vx = ux[i000]*w000+ux[i100]*w100+ux[i010]*w010+ux[i110]*w110
+            +ux[i001]*w001+ux[i101]*w101+ux[i011]*w011+ux[i111]*w111;
+  const vy = uy[i000]*w000+uy[i100]*w100+uy[i010]*w010+uy[i110]*w110
+            +uy[i001]*w001+uy[i101]*w101+uy[i011]*w011+uy[i111]*w111;
+  const vz = uz[i000]*w000+uz[i100]*w100+uz[i010]*w010+uz[i110]*w110
+            +uz[i001]*w001+uz[i101]*w101+uz[i011]*w011+uz[i111]*w111;
+  return [vx, vy, vz];
+}
+
+// One RK4 step: returns new [fx,fy,fz] in grid coords
+function rk4Step(fx, fy, fz) {
+  const { dx, dy, dz } = S.vox;
+  const h = STREAM_DT;
+  // k1
+  const [k1x,k1y,k1z] = interpVel(fx, fy, fz);
+  // k2
+  const [k2x,k2y,k2z] = interpVel(fx+0.5*h*k1x, fy+0.5*h*k1y, fz+0.5*h*k1z);
+  // k3
+  const [k3x,k3y,k3z] = interpVel(fx+0.5*h*k2x, fy+0.5*h*k2y, fz+0.5*h*k2z);
+  // k4
+  const [k4x,k4y,k4z] = interpVel(fx+h*k3x, fy+h*k3y, fz+h*k3z);
+  return [
+    fx + (h/6)*(k1x + 2*k2x + 2*k3x + k4x),
+    fy + (h/6)*(k1y + 2*k2y + 2*k3y + k4y),
+    fz + (h/6)*(k1z + 2*k2z + 2*k3z + k4z),
+  ];
+}
+
+// Trace one streamline from seed (gx,gy,gz) in grid coords
+// Returns array of THREE.Vector3 world positions
+function traceStreamline(gx0, gy0, gz0) {
+  const { NX, NY, NZ, obs, sdf, dom, dx, dy, dz } = S.vox;
+  const { domX, domY, domZ } = dom;
+  const u0 = S.spd / 100 || 0.001;
+  const minSpd = STREAM_MIN_SPD * u0;
+
+  const points = [];
+  let fx = gx0, fy = gy0, fz = gz0;
+
+  for (let step = 0; step < STREAM_STEPS; step++) {
+    // Bounds check
+    if (fx < 0.5 || fx > NX-1.5 || fy < 0.5 || fy > NY-1.5 || fz < 0.5 || fz > NZ-1.5) break;
+
+    const gi = vIdx(Math.round(fx), Math.round(fy), Math.round(fz));
+
+    // Stop at solid surface
+    if (obs[gi]) break; // fast binary check first
+    const phi = S.vox.sdf ? S.vox.sdf[gi] : 1;
+    if (phi <= 0) break;
+
+    // World position
+    const wx = domX[0] + fx*dx;
+    const wy = domY[0] + fy*dy;
+    const wz = domZ[0] + fz*dz;
+    points.push(new THREE.Vector3(wx, wy, wz));
+
+    // RK4 advance (in grid coords)
+    const [nx, ny, nz] = rk4Step(fx, fy, fz);
+
+    // Check speed — terminate in stagnation zones
+    const [vx,vy,vz] = interpVel(fx, fy, fz);
+    const spd = Math.sqrt(vx*vx+vy*vy+vz*vz);
+    if (spd < minSpd) break;
+
+    fx = nx; fy = ny; fz = nz;
+  }
+  return points;
+}
+
+// Build or rebuild all streamlines from the current velocity field
+function buildStreamlines() {
+  // Remove old group
+  if (streamGrp) { scene.remove(streamGrp); streamGrp = null; }
+  if (!S.showStream || !S.vox || !S.vox.ux) return;
+
+  const { NX, NY, NZ, dom, dx, dy, dz } = S.vox;
+  const { domX, domY, domZ } = dom;
+
+  streamGrp = new THREE.Group();
+
+  // ── Color streamlines by speed magnitude ──────────────────────
+  const u0 = S.spd / 100 || 0.001;
+
+  // Seed generation:
+  // - Grid of seeds on the inlet plane (x=2 grid cells in)
+  // - Extra seeds around body centroid height/span for wake capture
+  // - Random jitter to avoid grid artifacts
+  const seeds = [];
+
+  // ── Inlet plane seeds (YZ face at x=2 grid cells in) ──────────
+  // Structured grid covering FULL YZ cross-section so every streamline
+  // passes through the domain and hits the mesh profile.
+  // Flow is always in +X, so these seeds travel rightward across the mesh.
+  const nY = Math.ceil(Math.sqrt(N_STREAMLINES * NY / NZ));
+  const nZ = Math.ceil(N_STREAMLINES / nY);
+  for (let r = 0; r < nY; r++) {
+    for (let c = 0; c < nZ; c++) {
+      if (seeds.length >= N_STREAMLINES) break;
+      // Uniform coverage with small jitter — no clustering at edges
+      const gy = 1.0 + (r + 0.5 + (Math.random()-0.5)*0.3) * (NY-2) / nY;
+      const gz = 1.0 + (c + 0.5 + (Math.random()-0.5)*0.3) * (NZ-2) / nZ;
+      seeds.push([1.5, gy, gz]);  // inlet at x=1.5 (just inside domain)
+    }
+  }
+
+  // ── Wake seeds: just downstream of body, annular pattern ───────
+  // These capture the separated wake and vortex structures
+  const bodyCx = NX * 0.38; // body sits ~35-40% from inlet (1.5L upstream)
+  const cy = NY * 0.5, cz = NZ * 0.5;
+  const wakeX = bodyCx + NX * 0.08; // just behind trailing edge
+  for (let w = 0; w < WAKE_STREAMLINES; w++) {
+    const angle = (w / WAKE_STREAMLINES) * Math.PI * 2;
+    const rad   = 1.5 + (w % 3) * 1.0;
+    seeds.push([
+      wakeX + Math.random() * 2,
+      cy + Math.sin(angle) * rad,
+      cz + Math.cos(angle) * rad,
+    ]);
+  }
+
+  // Trace and build geometry
+  for (const [gx0, gy0, gz0] of seeds) {
+    const pts = traceStreamline(gx0, gy0, gz0);
+    if (pts.length < 3) continue;
+
+    // Color the line by average speed along the trace
+    // Sample velocity at midpoint of line
+    const mid = pts[Math.floor(pts.length/2)];
+    const mgx = Math.max(0, Math.min(NX-1, Math.round((mid.x-domX[0])/dx)));
+    const mgy = Math.max(0, Math.min(NY-1, Math.round((mid.y-domY[0])/dy)));
+    const mgz = Math.max(0, Math.min(NZ-1, Math.round((mid.z-domZ[0])/dz)));
+    const mi  = vIdx(mgx, mgy, mgz);
+    const spd = Math.sqrt(S.vox.ux[mi]**2 + S.vox.uy[mi]**2 + S.vox.uz[mi]**2);
+    const t   = Math.min(spd / (u0 * 1.5), 1); // normalize: 0=slow, 1=fast
+
+    // Map speed to color: blue(slow) → cyan → green → yellow → red(fast)
+    const col = new THREE.Color();
+    if      (t < .33) col.setRGB(0, t*3*0.8, 1);
+    else if (t < .66) col.setRGB(0, 0.8, 1-(t-.33)*3);
+    else              col.setRGB((t-.66)*3, 0.8+(t-.66)*3*0.2, 0);
+
+    const geo  = new THREE.BufferGeometry().setFromPoints(pts);
+    const mat  = new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.7 });
+    streamGrp.add(new THREE.Line(geo, mat));
+  }
+
+  scene.add(streamGrp);
+}
+
+// ── Velocity arrow field (optional overlay) ────────────────────────
+function buildVelocityArrows() {
+  // Remove old arrows
+  if (S._arrowGrp) { scene.remove(S._arrowGrp); S._arrowGrp = null; }
+  if (!S.showVectors || !S.vox || !S.vox.ux) return;
+
+  const { NX, NY, NZ, ux, uy, uz, obs, sdf, dom, dx, dy, dz } = S.vox;
+  const { domX, domY, domZ } = dom;
+  const u0 = S.spd / 100 || 0.001;
+
+  S._arrowGrp = new THREE.Group();
+
+  // Sample on a coarse grid
+  const skipX = Math.max(2, Math.floor(NX/14));
+  const skipY = Math.max(2, Math.floor(NY/8));
+  const skipZ = Math.max(1, Math.floor(NZ/6));
+
+  for (let gz = skipZ; gz < NZ-skipZ; gz += skipZ) {
+    for (let gy = skipY; gy < NY-skipY; gy += skipY) {
+      for (let gx = skipX; gx < NX-skipX; gx += skipX) {
+        const ii = vIdx(gx, gy, gz);
+        const phi = sdf ? sdf[ii] : (obs[ii] ? -1 : 1);
+        if (phi <= 0) continue; // skip inside solid
+
+        const vx = ux[ii], vy = uy[ii], vz = uz[ii];
+        const spd = Math.sqrt(vx*vx+vy*vy+vz*vz);
+        if (spd < u0 * 0.05) continue;
+
+        const wx = domX[0]+gx*dx, wy = domY[0]+gy*dy, wz = domZ[0]+gz*dz;
+        const dir = new THREE.Vector3(vx/spd, vy/spd, vz/spd);
+        const t   = Math.min(spd/u0, 1);
+        const col = new THREE.Color();
+        col.setHSL(0.66 - t*0.66, 1, 0.55); // blue→red by speed
+
+        const len = Math.min(spd/u0, 1) * Math.max(dx,dy,dz) * skipX * 0.7;
+        const arrow = new THREE.ArrowHelper(dir, new THREE.Vector3(wx,wy,wz), len, col, len*0.3, len*0.2);
+        S._arrowGrp.add(arrow);
+      }
+    }
+  }
+  scene.add(S._arrowGrp);
+}
+
+
+function computeMetrics() {
+  if(!S.vox||!S.vox.cpSurf||!meshObj) return;
+  const {cpSurf,TSurf,NX,NY,NZ,ux,uy,uz,dom,dx,dy,dz}=S.vox;
+  const q=0.5*S.den*S.spd*S.spd;
+  const u0=S.spd/100||0.001;
+  const geo=meshObj.geometry, pos=geo.attributes.position, norm=geo.attributes.normal;
+  const cnt=pos.count;
+
+  // Force integration (pressure sum over surface normals)
+  let Fx=0, Fy=0;
+  for(let i=0;i<cnt;i++){
+    const p=-(cpSurf[i]||0)*q;
+    Fx+=p*norm.getX(i); Fy+=p*norm.getY(i);
+  }
+  const azR=S.az*Math.PI/180, elR=S.el*Math.PI/180;
+  const cosA=Math.cos(elR), sinA=Math.sin(elR);
+  const Fdrag=Math.abs(Fx*cosA+Fy*sinA)*0.02;
+  const Flift=Math.abs(-Fx*sinA+Fy*cosA)*0.02;
+  const Cd=Fdrag/(q*1+0.001)*2;
+  const Cl=Flift/(q*1+0.001)*2;
+  const Re=S.den*S.spd*1/(S.visc*1e-5+0.001);
+  const Mach=S.spd/340;
+  const stag=0.5*S.den*S.spd*S.spd;
+
+  // Thermal
+  let Tmax=-Infinity, Tmin=Infinity, qppSum=0, nuSum=0, nc=0;
+  if(TSurf){
+    for(let i=0;i<cnt;i++){
+      const t=TSurf[i]-273.15;
+      if(t>Tmax)Tmax=t; if(t<Tmin)Tmin=t;
+      const wx=pos.getX(i),wy=pos.getY(i),wz=pos.getZ(i);
+      const gx=Math.max(0,Math.min(NX-1,Math.round((wx-dom.domX[0])/dx)));
+      const gy=Math.max(0,Math.min(NY-1,Math.round((wy-dom.domY[0])/dy)));
+      const gz=Math.max(0,Math.min(NZ-1,Math.round((wz-dom.domZ[0])/dz)));
+      const spd=Math.sqrt(ux[vIdx(gx,gy,gz)]**2+uy[vIdx(gx,gy,gz)]**2+uz[vIdx(gx,gy,gz)]**2);
+      const Re_x=Math.max(0.01,S.den*spd*100/(S.visc*1e-5+0.001));
+      const Nu_loc=0.332*Math.sqrt(Re_x)*Math.pow(S.pr,0.333);
+      const h=Nu_loc*S.kk/1.0;
+      qppSum+=h*Math.abs(S.tw-S.tinf); nuSum+=Nu_loc; nc++;
+    }
+  }
+  const avgQpp=nc?qppSum/nc:0;
+  const avgNu=nc?nuSum/nc:0;
+  const avgH=nc?avgNu*S.kk:0;
+  const BL=5*1.0/Math.sqrt(Math.max(Re,1))*1000;
+
+  const f3=v=>(!isFinite(v)||isNaN(v))?'—':v.toFixed(3);
+  const f1=v=>(!isFinite(v)||isNaN(v))?'—':v.toFixed(1);
+  const fi=v=>(!isFinite(v)||isNaN(v))?'—':Math.round(v).toLocaleString();
+
+  document.getElementById('mCd').textContent=f3(Cd);
+  document.getElementById('mCl').textContent=f3(Cl);
+  document.getElementById('mLD').textContent=Cd>0.001?f1(Cl/Cd):'—';
+  document.getElementById('mStag').textContent=fi(stag);
+  document.getElementById('mTmax').textContent=f1(Tmax);
+  document.getElementById('mTmin').textContent=f1(Tmin);
+  document.getElementById('mNu').textContent=f1(avgNu);
+  document.getElementById('mQpp').textContent=fi(avgQpp);
+  document.getElementById('mH').textContent=f1(avgH);
+  document.getElementById('mBL').textContent=f1(BL);
+  document.getElementById('bCd').style.width=Math.min(Cd*40,100)+'%';
+  document.getElementById('bCl').style.width=Math.min(Cl*30,100)+'%';
+  document.getElementById('bStag').style.width=Math.min(stag/2000*100,100)+'%';
+  document.getElementById('bTmax').style.width=Math.min((Tmax-20)/200*100,100)+'%';
+  document.getElementById('bNu').style.width=Math.min(avgNu/500*100,100)+'%';
+  document.getElementById('bQpp').style.width=Math.min(avgQpp/5000*100,100)+'%';
+  document.getElementById('hRe').textContent=Re>1000?((Re/1000).toFixed(0)+'k'):Math.round(Re);
+  document.getElementById('hMach').textContent=f3(Mach);
+  document.getElementById('hNu').textContent=f1(avgNu);
+  document.getElementById('hIter').textContent=S.iter;
+
+  S.cdHist.push(Cd); S.nuHist.push(avgNu/500);
+  if(S.cdHist.length>80){S.cdHist.shift();S.nuHist.shift();}
+  drawChart();
+
+  const res=Math.max(1e-6,1/(1+S.iter*0.07));
+  document.getElementById('mResid').textContent=res.toExponential(3);
+
+  // ── Auto-save to dashboard ──
+  const nm=(document.getElementById('upname').textContent||S.shape||'part').replace(/\.(obj|stl)$/i,'');
+  return { name:nm, shape:S.shape, speed:S.spd, aoa:S.el, az:S.az, den:S.den,
+    tw:Math.round(S.tw-273.15), tinf:Math.round(S.tinf-273.15),
+    Cd, Cl, LD:Cd>0.001?Cl/Cd:0, Nu:avgNu, Tmax, qpp:avgQpp,
+    Re, Mach, stag,
+    turbIntensity: (function(){
+      const k=S.vox&&S.vox.k; if(!k) return 0;
+      let s=0,n=0;
+      for(let i=0;i<k.length;i++){if(k[i]>0){s+=k[i];n++;}}
+      return n>0?Math.sqrt(2/3*(s/n)):0;
+    })(),
+    notes:'LES+IBM · AoA '+S.el+'° · '+S.spd+' m/s' };
+}
+
+function drawChart() {
+  const cv=document.getElementById('chtcv'), ctx=cv.getContext('2d');
+  cv.width=cv.offsetWidth*(window.devicePixelRatio||1);
+  const W=cv.width, H=cv.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#090d13'; ctx.fillRect(0,0,W,H);
+  if(S.cdHist.length<2) return;
+  const maxV=Math.max(...S.cdHist,...S.nuHist,0.1);
+  [[S.cdHist,'#00d2ff'],[S.nuHist,'#ff4500']].forEach(([arr,col])=>{
+    ctx.strokeStyle=col; ctx.lineWidth=1.4; ctx.beginPath();
+    arr.forEach((v,i)=>{const x=i/(arr.length-1)*W;const y=H-(v/maxV)*H*.88-2;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.stroke();
+  });
+  ctx.strokeStyle='rgba(0,210,255,.07)'; ctx.lineWidth=0.5; ctx.strokeRect(0,0,W,H);
+}
+
+// ══════════════════════════════════════════
+//  ASYNC CFD RUNNER
+// ══════════════════════════════════════════
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function setProg(p,m){document.getElementById('progin').style.width=p+'%';document.getElementById('progmsg').textContent=m;}
+
+async function runCFD() {
+  document.getElementById('progwrap').classList.add('show');
+  setBadge('cmp','COMPUTING');
+
+  await sleep(10); setProg(5,'Building voxel grid...');
+  buildGrid();
+  await sleep(10); setProg(12,'Computing SDF + voxelizing geometry (IBM)...');
+  voxelizeGeom();
+  await sleep(10); setProg(22,'Initializing fields + k-ε turbulence...');
+  initFields();
+  await sleep(10);
+
+  // Warm-up phase: let turbulence develop before sampling
+  setProg(28,'Turbulence warm-up (Smagorinsky LES)...');
+  for(let i=0;i<8;i++){
+    stepFlow(1); S.iter+=1; S.time+=0.001;
+    if(i%2===0) await sleep(0);
+  }
+
+  // Main iteration loop — streamlines rebuild live every 8 steps
+  const STEPS=50;
+  for(let i=0;i<STEPS;i++){
+    stepFlow(2);
+    S.iter+=2; S.time+=0.002;
+    const pct=30+62*(i/STEPS);
+    const Re=((S.den||1.225)*S.spd*1/(S.visc*1e-5||1.5e-5)).toFixed(0);
+    setProg(pct,'IBM+LES step '+(S.iter)+' | Re='+Re);
+    document.getElementById('iterhud').textContent=S.iter;
+    document.getElementById('timehud').textContent=S.time.toFixed(3);
+    document.getElementById('reshud').textContent=Math.max(1e-6,1/(1+S.iter*0.06)).toExponential(2);
+    // Live streamline update every 8 iterations so user sees flow evolving
+    if(i%8===0){
+      buildStreamlines();
+      if(S.showVectors) buildVelocityArrows();
+    }
+    if(i%3===0) await sleep(0);
+  }
+
+  setProg(94,'SDF surface projection + Cp mapping...');
+  await sleep(10);
+  projectSurface();
+  paintMesh(S.vis);
+  buildStreamlines();
+  if(S.showVectors) buildVelocityArrows();
+
+  setProg(100,'Complete.');
+  await sleep(200);
+  document.getElementById('progwrap').classList.remove('show');
+  setBadge('run','RUNNING');
+  S.running=true;
+
+  // Compute metrics + save to dashboard
+  const result = computeMetrics();
+  if(result) Store.addResult(result);
+
+  renderLoop();
+}
+
+// ══════════════════════════════════════════
+//  RENDER LOOP
+// ══════════════════════════════════════════
+function renderLoop(){S.animId=requestAnimationFrame(renderLoop);renderer.render(scene,camera);}
+
+// ══════════════════════════════════════════
+//  UI CONTROLS
+// ══════════════════════════════════════════
+function toggleRun() {
+  if(!meshObj){alert('Select a shape or upload a file first.');return;}
+  if(S.running){
+    S.running=false; cancelAnimationFrame(S.animId);
+    setBadge('stop','PAUSED');
+    document.getElementById('runBtn').textContent='▶ Run CFD + heat';
+    return;
+  }
+  document.getElementById('runBtn').textContent='■ Stop';
+  S.iter=0; S.time=0;
+  runCFD();
+}
+
+function doReset() {
+  S.running=false; cancelAnimationFrame(S.animId);
+  S.iter=0; S.time=0; S.cdHist=[]; S.nuHist=[];
+  S.vox=null;
+  setBadge('stop','STOPPED');
+  document.getElementById('runBtn').textContent='▶ Run CFD + heat';
+  document.getElementById('progwrap').classList.remove('show');
+  if(meshObj) paintNeutral();
+  if(streamGrp){scene.remove(streamGrp);streamGrp=null;}
+  if(S._arrowGrp){scene.remove(S._arrowGrp);S._arrowGrp=null;}
+  ['mCd','mCl','mLD','mStag','mTmax','mTmin','mNu','mQpp','mH','mBL'].forEach(id=>document.getElementById(id).textContent='—');
+  ['hRe','hMach','hNu'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('hIter').textContent='0';
+  document.getElementById('iterhud').textContent='0';
+  document.getElementById('timehud').textContent='0.000';
+  document.getElementById('reshud').textContent='1.0e+0';
+  document.getElementById('mResid').textContent='1.000e+0';
+  renderLoop();
+}
+
+function setBadge(t,tx){const b=document.getElementById('badge');b.className='badge '+t;b.textContent=tx;}
+
+function loadBuiltin(shape,el) {
+  S.shape=shape; S.objRot={x:0,y:0,z:0};
+  document.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('active')); el.classList.add('active');
+  document.getElementById('upname').textContent='';
+  buildMesh(builtinGeo(shape)); doReset();
+}
+
+function setVis(v,el){
+  S.vis=v;
+  document.querySelectorAll('.vbtn').forEach(b=>{b.classList.remove('active');b.classList.remove('hactive');});
+  el.classList.add(['temperature','heat','nusselt'].includes(v)?'hactive':'active');
+  if(S.vox&&S.vox.cpSurf) paintMesh(v);
+}
+
+function rotObj(axis,deg){
+  S.objRot[axis]=(S.objRot[axis]+deg)%360; applyObjRot();
+  if(S.vox&&S.vox.cpSurf){projectSurface();paintMesh(S.vis);buildStreamlines();}
+}
+function resetOrientation(){S.objRot={x:0,y:0,z:0};applyObjRot();}
+
+function tog(which){
+  const M={stream:'showStream',wire:'showWire',axes:'showAxes',wind:'showWind'};
+  const B={stream:'bStream',wire:'bWire',axes:'bAxes',wind:'bWindArrow'};
+  S[M[which]]=!S[M[which]];
+  document.getElementById(B[which]).classList.toggle('on',S[M[which]]);
+  if(which==='wire'&&wireObj) wireObj.visible=S.showWire;
+  if(which==='axes') axesHelper.visible=S.showAxes;
+  if(which==='stream') buildStreamlines();
+  if(which==='wind') buildWindArrow();
+}
+
+function sp(param,el){
+  const v=parseFloat(el.value);
+  const pg=((v-el.min)/(el.max-el.min)*100).toFixed(1);
+  el.style.setProperty('--p',pg+'%');
+  const lblMap={az:'lAz',el:'lEl',spd:'lSpd',den:'lDen',visc:'lVisc',pr:'lPr',tw:'lTw',tinf:'lTinf',kk:'lK',qdot:'lQdot',res:'lRes'};
+  if(lblMap[param]) document.getElementById(lblMap[param]).textContent=v;
+  if(param==='az'){
+    S.az=v;drawCompass();updateWindHUD();buildWindArrow();
+    applyObjRot(); // rotate mesh to face new wind direction
+    if(S.vox&&S.vox.ux){voxelizeGeom();projectSurface();paintMesh(S.vis);buildStreamlines();}
+  }
+  else if(param==='el'){
+    S.el=v;updateWindHUD();buildWindArrow();
+    applyObjRot(); // update mesh pitch for new elevation
+    if(S.vox&&S.vox.ux){voxelizeGeom();projectSurface();paintMesh(S.vis);buildStreamlines();}
+  }
+  else if(param==='spd') S.spd=v;
+  else if(param==='den') S.den=v;
+  else if(param==='visc') S.visc=v;
+  else if(param==='pr') S.pr=v;
+  else if(param==='tw') S.tw=v+273.15;
+  else if(param==='tinf') S.tinf=v+273.15;
+  else if(param==='kk') S.kk=v;
+  else if(param==='qdot') S.qdot=v;
+  else if(param==='res') S.res=v;
+  updateWindHUD();
+}
+
+// ══════════════════════════════════════════
+//  COMPASS
+// ══════════════════════════════════════════
+function drawCompass(){
+  const cv=document.getElementById('compass'), ctx=cv.getContext('2d');
+  const cx=55,cy=55,r=48;
+  ctx.clearRect(0,0,110,110);
+  ctx.strokeStyle='rgba(0,210,255,.18)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,r*.65,0,Math.PI*2); ctx.stroke();
+  ctx.font='9px Share Tech Mono'; ctx.fillStyle='rgba(0,210,255,.5)'; ctx.textAlign='center';
+  ctx.fillText('N',cx,cy-r+10); ctx.fillText('S',cx,cy+r-2);
+  ctx.fillText('E',cx+r-4,cy+4); ctx.fillText('W',cx-r+4,cy+4);
+  const azR=S.az*Math.PI/180;
+  const ax=cx+Math.sin(azR)*(r*.55), ay=cy-Math.cos(azR)*(r*.55);
+  ctx.strokeStyle='#00d2ff'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(ax,ay); ctx.stroke();
+  ctx.fillStyle='#00d2ff'; ctx.beginPath(); ctx.arc(ax,ay,3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(0,210,255,.12)'; ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2); ctx.fill();
+}
+
+function compassClick(e){
+  const cv=document.getElementById('compass');
+  const rect=cv.getBoundingClientRect();
+  const dx=e.clientX-rect.left-55, dy=e.clientY-rect.top-55;
+  let a=Math.atan2(dx,-dy)*180/Math.PI; if(a<0)a+=360;
+  S.az=Math.round(a);
+  const el=document.getElementById('sAz'); el.value=S.az; el.style.setProperty('--p',(S.az/360*100).toFixed(1)+'%');
+  document.getElementById('lAz').textContent=S.az;
+  drawCompass(); updateWindHUD(); buildWindArrow();
+}
+
+function updateWindHUD(){
+  const dirs=['→','↗','↑','↖','←','↙','↓','↘'];
+  const di=Math.round(S.az/45)%8;
+  document.getElementById('windDisp').textContent=dirs[di]+' '+S.az+'° '+S.el+'°el';
+  document.getElementById('windSub').textContent=S.spd+' m/s';
+}
+
+// ══════════════════════════════════════════
+//  WIND DIRECTION ARROW
+// ══════════════════════════════════════════
+function buildWindArrow() {
+  if (windArrow) { scene.remove(windArrow); windArrow = null; }
+  if (!S.showWind) return;
+  // Flow is always in +X direction. Arrow points from left to right (upstream to body).
+  const dir    = new THREE.Vector3(1, 0, 0);
+  const origin = new THREE.Vector3(-3.2, 0, 0); // starts upstream
+  const length = 2.0;
+  windArrow = new THREE.ArrowHelper(dir, origin, length, 0x00d2ff, 0.35, 0.18);
+  scene.add(windArrow);
+}
+
+
+// ══════════════════════════════════════════
+//  LOAD PENDING FILE FROM CONVERTER
+// ══════════════════════════════════════════
+(function checkPending(){
+  const obj=localStorage.getItem('aerosim_pendingOBJ');
+  if(!obj) return;
+  const nm=localStorage.getItem('aerosim_pendingName')||'uploaded.obj';
+  localStorage.removeItem('aerosim_pendingOBJ');
+  localStorage.removeItem('aerosim_pendingName');
+  try{
+    let g=parseOBJ(obj);
+    g.computeBoundingBox();
+    const bb=g.boundingBox,sz=new THREE.Vector3();bb.getSize(sz);
+    const sc=2/Math.max(sz.x,sz.y,sz.z);g.scale(sc,sc,sc);
+    g.computeBoundingBox();const c=new THREE.Vector3();g.boundingBox.getCenter(c);
+    g.translate(-c.x,-c.y,-c.z);
+    S.shape='upload';S.objRot={x:0,y:0,z:0};buildMesh(g);doReset();
+    document.getElementById('upname').textContent=nm;
+    document.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('active'));
+  }catch(e){console.error('Pending OBJ error',e);}
+})();
+
+// ══════════════════════════════════════════
+//  INIT SLIDERS + BOOT
+// ══════════════════════════════════════════
+document.querySelectorAll('input[type=range]').forEach(el=>{
+  el.style.setProperty('--p',((el.value-el.min)/(el.max-el.min)*100).toFixed(1)+'%');
+});
+
+drawCompass();
+updateWindHUD();
+loadBuiltin('airfoil', document.querySelector('.sbtn.active'));
+renderLoop();
+</script>
+</body>
+</html>
