@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AeroSim — Physics Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+
+/* shared_inline.css — paste into every page's <style> block */
+
+:root {
+  --bg: #07090d;
+  --bg2: #0c1018;
+  --bg3: #111820;
+  --panel: #090d13;
+  --border: rgba(0,210,255,0.10);
+  --border2: rgba(0,210,255,0.22);
+  --acc: #00d2ff;
+  --acc2: #00ff9d;
+  --acc3: #ff6b35;
+  --warn: #ffd166;
+  --heat: #ff4500;
+  --text: #c8dde8;
+  --text2: #4a6a7a;
+  --text3: #1e3040;
+  --mono: 'Share Tech Mono', monospace;
+  --sans: 'Syne', sans-serif;
+  --nav-h: 48px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 12px; display: flex; flex-direction: column; overflow: hidden; }
+
+/* TOP NAV */
+.topnav {
+  height: var(--nav-h);
+  flex-shrink: 0;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 0;
+  z-index: 100;
+}
+.nav-brand {
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--acc);
+  letter-spacing: .06em;
+  margin-right: 28px;
+  white-space: nowrap;
+}
+.nav-brand span { color: var(--text2); font-weight: 400; font-size: 10px; margin-left: 6px; }
+.nav-links { display: flex; gap: 2px; flex: 1; }
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 5px;
+  text-decoration: none;
+  color: var(--text2);
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  transition: all .15s;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.nav-link svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.nav-link:hover { color: var(--text); background: rgba(0,210,255,.05); border-color: var(--border); }
+.nav-link.active { color: var(--acc); background: rgba(0,210,255,.09); border-color: var(--border2); }
+
+/* PAGE SHELL */
+.page { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  flex-shrink: 0;
+}
+.page-title { font-family: var(--sans); font-weight: 800; font-size: 15px; color: var(--text); }
+.page-title span { color: var(--acc); }
+.page-body { flex: 1; overflow-y: auto; padding: 18px 20px; }
+.page-body::-webkit-scrollbar { width: 3px; }
+.page-body::-webkit-scrollbar-thumb { background: var(--border2); }
+
+/* CARDS */
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+.card-title {
+  font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--text2); margin-bottom: 11px;
+  display: flex; align-items: center; gap: 5px;
+}
+.card-title::before { content: ''; display: inline-block; width: 2px; height: 9px; background: var(--acc); border-radius: 2px; }
+.card-title.heat::before { background: var(--heat); }
+.card-title.ok::before { background: var(--acc2); }
+.card-title.warn::before { background: var(--warn); }
+
+/* BADGES */
+.badge { padding: 2px 8px; border-radius: 3px; font-size: 8px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; display: inline-block; }
+.badge.run  { background: rgba(0,255,157,.1); color: var(--acc2); border: 1px solid rgba(0,255,157,.25); }
+.badge.stop { background: rgba(255,107,53,.1); color: var(--acc3); border: 1px solid rgba(255,107,53,.25); }
+.badge.cmp  { background: rgba(0,210,255,.1); color: var(--acc); border: 1px solid rgba(0,210,255,.25); }
+.badge.warn { background: rgba(255,209,102,.1); color: var(--warn); border: 1px solid rgba(255,209,102,.25); }
+
+/* BUTTONS */
+.btn { padding: 7px 14px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--text); cursor: pointer; font-family: var(--mono); font-size: 10px; letter-spacing: .07em; text-transform: uppercase; transition: all .15s; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+.btn:hover { background: rgba(0,210,255,.07); border-color: var(--acc); color: var(--acc); }
+.btn.primary { background: rgba(0,255,157,.1); color: var(--acc2); border-color: rgba(0,255,157,.3); }
+.btn.primary:hover { background: rgba(0,255,157,.18); }
+.btn.danger { background: rgba(255,107,53,.08); color: var(--acc3); border-color: rgba(255,107,53,.25); }
+.btn.danger:hover { background: rgba(255,107,53,.16); }
+.btn.sm { padding: 4px 10px; font-size: 9px; }
+
+/* FORM ELEMENTS */
+input[type=range] { width: 100%; -webkit-appearance: none; height: 2px; background: var(--bg3); border-radius: 2px; outline: none; cursor: pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%; background: var(--acc); cursor: pointer; }
+input[type=range]::-webkit-slider-runnable-track { background: linear-gradient(to right, var(--acc) var(--p,50%), var(--bg3) var(--p,50%)); height: 2px; border-radius: 2px; }
+input[type=range].hs::-webkit-slider-thumb { background: var(--heat); }
+input[type=range].hs::-webkit-slider-runnable-track { background: linear-gradient(to right, var(--heat) var(--p,50%), var(--bg3) var(--p,50%)); }
+input[type=text], input[type=number], select, textarea { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: var(--mono); font-size: 11px; padding: 6px 10px; outline: none; transition: border-color .15s; width: 100%; }
+input:focus, select:focus, textarea:focus { border-color: var(--acc); }
+select option { background: var(--bg2); }
+
+/* UPLOAD ZONE */
+.upload-zone { border: 1px dashed rgba(0,210,255,.25); border-radius: 7px; padding: 22px 16px; text-align: center; cursor: pointer; transition: all .2s; background: rgba(0,210,255,.02); }
+.upload-zone:hover, .upload-zone.drag { border-color: var(--acc); background: rgba(0,210,255,.06); }
+.upload-zone input { display: none; }
+
+/* TABLE */
+.data-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.data-table th { text-align: left; font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: var(--text2); padding: 6px 10px; border-bottom: 1px solid var(--border); }
+.data-table td { padding: 7px 10px; border-bottom: 1px solid rgba(0,210,255,.05); color: var(--text); }
+.data-table tr:hover td { background: rgba(0,210,255,.03); }
+
+/* METRIC BOX */
+.mbox { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px; }
+.mbox-lbl { font-size: 8px; text-transform: uppercase; letter-spacing: .1em; color: var(--text2); margin-bottom: 2px; }
+.mbox-val { font-size: 19px; font-family: var(--sans); font-weight: 700; color: var(--acc); line-height: 1.1; }
+.mbox-val.ok { color: var(--acc2); } .mbox-val.hot { color: var(--heat); } .mbox-val.warn { color: var(--warn); }
+.mbox-unit { font-size: 9px; color: var(--text2); margin-top: 1px; }
+.mbar-w { margin-top: 5px; height: 2px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.mbar { height: 100%; border-radius: 2px; background: var(--acc); transition: width .35s; }
+.mbar.d { background: var(--acc3); } .mbar.h { background: var(--heat); } .mbar.w { background: var(--warn); } .mbar.ok { background: var(--acc2); }
+
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+body{overflow:hidden;}
+.pg{display:grid;grid-template-columns:180px 1fr;height:100%;gap:0;}
+.pnav{border-right:1px solid var(--border);padding:10px 0;overflow-y:auto;}
+.pnav a{display:block;padding:6px 13px;font-size:9px;color:var(--text2);text-decoration:none;letter-spacing:.05em;border-left:2px solid transparent;transition:all .12s;}
+.pnav a:hover{color:var(--text);background:rgba(0,210,255,.04);}
+.pnav a.on{color:var(--acc);border-left-color:var(--acc);background:rgba(0,210,255,.05);}
+.pnav .ng{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3);padding:9px 13px 3px;}
+.pc2{overflow-y:auto;padding:18px 22px;}
+.pc2::-webkit-scrollbar{width:3px;}
+.pc2::-webkit-scrollbar-thumb{background:var(--border2);}
+.eq{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--acc);border-radius:0 5px 5px 0;padding:9px 13px;margin:9px 0;font-size:12px;color:var(--text);letter-spacing:.02em;}
+.eq.ht{border-left-color:var(--heat);}
+.eq.ok{border-left-color:var(--acc2);}
+.eq.wn{border-left-color:var(--warn);}
+.eq-cap{font-size:9px;color:var(--text2);margin-top:4px;line-height:1.6;}
+.sh{font-family:var(--sans);font-size:16px;font-weight:700;color:var(--text);margin:18px 0 5px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+.sh:first-child{margin-top:0;}
+.bt{font-size:11px;color:var(--text2);line-height:1.8;margin-bottom:9px;}
+.ptb{width:100%;border-collapse:collapse;font-size:10px;margin:9px 0;}
+.ptb th{text-align:left;font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text2);padding:5px 9px;border-bottom:1px solid var(--border);}
+.ptb td{padding:5px 9px;border-bottom:1px solid rgba(0,210,255,.05);vertical-align:top;}
+.ptb td:first-child{color:var(--acc);font-weight:600;width:90px;}
+.ptb td:nth-child(2){color:var(--text);width:160px;}
+.ptb td:last-child{color:var(--text2);}
+.cl2{background:rgba(0,210,255,.04);border:1px solid rgba(0,210,255,.14);border-radius:5px;padding:9px 13px;margin:9px 0;font-size:10px;color:var(--text2);line-height:1.6;}
+.cl2.wn{background:rgba(255,209,102,.04);border-color:rgba(255,209,102,.18);}
+.cl2.ht{background:rgba(255,69,0,.04);border-color:rgba(255,69,0,.18);}
+.rg{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:9px 0;}
+.rc{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:7px;}
+.rc-n{font-size:9px;color:var(--acc);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.rc-r{font-size:11px;color:var(--text);font-family:var(--sans);font-weight:700;}
+.rc-d{font-size:9px;color:var(--text2);margin-top:2px;}
+.rf{padding:6px 0;border-bottom:1px solid rgba(0,210,255,.05);font-size:10px;color:var(--text2);}
+
+</style>
+</head>
+<body>
+<div class="page">
+<div class="page-header">
+  <div class="page-title"><span>Aero</span>Sim &mdash; Physics Reference</div>
+  <div style="font-size:10px;color:var(--text2);">Governing equations &amp; numerical methods as implemented</div>
+</div>
+<div style="flex:1;overflow:hidden;display:flex;">
+<div class="pg">
+
+  <div class="pnav">
+    <div class="ng">Fluid mechanics</div>
+    <a href="#ns"      onclick="go('ns',this)">Navier-Stokes</a>
+    <a href="#cont"    onclick="go('cont',this)">Continuity</a>
+    <a href="#bern"    onclick="go('bern',this)">Bernoulli &amp; Cp</a>
+    <a href="#forces"  onclick="go('forces',this)">Force integration</a>
+    <div class="ng">Turbulence (LES)</div>
+    <a href="#smagor"  onclick="go('smagor',this)">Smagorinsky LES</a>
+    <a href="#vdriest" onclick="go('vdriest',this)">Van Driest damping</a>
+    <a href="#keps"    onclick="go('keps',this)">k&ndash;&epsilon; transport</a>
+    <div class="ng">Geometry (IBM/SDF)</div>
+    <a href="#sdf"     onclick="go('sdf',this)">Signed distance field</a>
+    <a href="#ibm"     onclick="go('ibm',this)">Immersed boundary</a>
+    <a href="#sdfnorm" onclick="go('sdfnorm',this)">Normals &amp; Cp</a>
+    <div class="ng">Thermal</div>
+    <a href="#energy"  onclick="go('energy',this)">Energy equation</a>
+    <a href="#newton"  onclick="go('newton',this)">Newton cooling</a>
+    <a href="#nusselt" onclick="go('nusselt',this)">Nusselt correlations</a>
+    <div class="ng">Numerics</div>
+    <a href="#scheme"  onclick="go('scheme',this)">Fractional-step solver</a>
+    <a href="#rk4"     onclick="go('rk4',this)">RK4 streamlines</a>
+    <a href="#accuracy" onclick="go('accuracy',this)">Accuracy &amp; limits</a>
+    <div class="ng">Reference</div>
+    <a href="#re"      onclick="go('re',this)">Reynolds regimes</a>
+    <a href="#mach"    onclick="go('mach',this)">Mach regimes</a>
+    <a href="#cdg"     onclick="go('cdg',this)">Cd reference values</a>
+    <a href="#thg"     onclick="go('thg',this)">Thermal guidelines</a>
+    <a href="#refs"    onclick="go('refs',this)">References</a>
+  </div>
+
+  <div class="pc2" id="pc2">
+
+    <!-- ═══ NAVIER-STOKES ═══ -->
+    <div class="sh" id="ns">Incompressible Navier-Stokes (momentum)</div>
+    <div class="bt">The Navier-Stokes equations govern velocity and pressure for a viscous fluid. AeroSim solves the incompressible form with an added turbulent eddy viscosity term from the Smagorinsky LES model.</div>
+    <div class="eq">&part;u/&part;t + (u&middot;&nabla;)u = &minus;(1/&rho;)&nabla;p + &nabla;&middot;[(&#957; + &#957;<sub>t</sub>)&nabla;u] + f<sub>IBM</sub></div>
+    <div class="eq-cap">
+      <b>u</b> = velocity field (m/s) &nbsp;&middot;&nbsp; <b>&rho;</b> = density (kg/m&sup3;) &nbsp;&middot;&nbsp; <b>p</b> = pressure (Pa)<br>
+      <b>&#957;</b> = kinematic viscosity (m&sup2;/s) &nbsp;&middot;&nbsp; <b>&#957;<sub>t</sub></b> = turbulent eddy viscosity from Smagorinsky LES<br>
+      <b>f<sub>IBM</sub></b> = immersed boundary body force enforcing no-slip at solid surfaces
+    </div>
+    <div class="cl2"><b>Implementation:</b> Semi-Lagrangian advection (unconditionally stable) + explicit diffusion with (&#957;+&#957;<sub>t</sub>) + Chorin projection for pressure. Time step &Delta;t is adaptive: CFL &asymp; 0.5.</div>
+
+    <!-- ═══ CONTINUITY ═══ -->
+    <div class="sh" id="cont">Continuity (mass conservation)</div>
+    <div class="eq">&nabla;&middot;u = &part;u/&part;x + &part;v/&part;y + &part;w/&part;z = 0</div>
+    <div class="eq-cap">Incompressible flow: density is constant, reducing mass conservation to a divergence-free constraint. Enforced each step via 3 Jacobi iterations of the pressure-Poisson equation.</div>
+
+    <!-- ═══ BERNOULLI ═══ -->
+    <div class="sh" id="bern">Bernoulli equation &amp; pressure coefficient</div>
+    <div class="eq">p + &frac12;&rho;|u|&sup2; = p<sub>&infin;</sub> + &frac12;&rho;U<sub>&infin;</sub>&sup2;</div>
+    <div class="eq ok">C<sub>p</sub> = (p &minus; p<sub>&infin;</sub>) / q<sub>&infin;</sub> = 1 &minus; (|u| / U<sub>&infin;</sub>)&sup2;</div>
+    <div class="eq-cap"><b>q<sub>&infin;</sub></b> = &frac12;&rho;U<sub>&infin;</sub>&sup2; &nbsp;&middot;&nbsp; C<sub>p</sub> = +1 at stagnation &nbsp;&middot;&nbsp; C<sub>p</sub> = 0 far field &nbsp;&middot;&nbsp; C<sub>p</sub> &lt; &minus;1 at suction peaks</div>
+
+    <!-- ═══ FORCES ═══ -->
+    <div class="sh" id="forces">Aerodynamic force integration</div>
+    <div class="eq">F = &oint;<sub>S</sub> (&minus;p n&#770; + &tau;&middot;n&#770;) dS</div>
+    <div class="eq ok">C<sub>d</sub> = D / (q<sub>&infin;</sub> A) &nbsp;&nbsp;&nbsp; C<sub>l</sub> = L / (q<sub>&infin;</sub> A)</div>
+    <div class="eq-cap">
+      Forces are integrated over the surface mesh by summing pressure contributions weighted by outward vertex normals.<br>
+      <b>n&#770;</b> = outward surface normal (computed from SDF gradient) &nbsp;&middot;&nbsp; <b>A</b> = reference area<br>
+      Drag D = component in flow direction &nbsp;&middot;&nbsp; Lift L = component perpendicular to flow
+    </div>
+
+    <!-- ═══ SMAGORINSKY LES ═══ -->
+    <div class="sh" id="smagor">Smagorinsky Large Eddy Simulation (LES)</div>
+    <div class="bt">The Smagorinsky model computes a sub-grid-scale (SGS) eddy viscosity that represents the energy transfer from resolved large eddies to unresolved small scales. It is the most widely used explicit SGS model in practical LES.</div>
+    <div class="eq ht">&#957;<sub>t</sub> = (C<sub>s</sub> &middot; &Delta; &middot; f<sub>d</sub>)&sup2; &middot; |S&#773;|</div>
+    <div class="eq ht">|S&#773;| = &radic;(2 S<sub>ij</sub> S<sub>ij</sub>) &nbsp;&nbsp;&nbsp; S<sub>ij</sub> = &frac12;(&part;u<sub>i</sub>/&part;x<sub>j</sub> + &part;u<sub>j</sub>/&part;x<sub>i</sub>)</div>
+    <div class="eq-cap">
+      <b>C<sub>s</sub></b> = 0.17 (Smagorinsky constant, tuned for wall-bounded flows) &nbsp;&middot;&nbsp; <b>&Delta;</b> = max(dx, dy, dz) LES filter width<br>
+      <b>f<sub>d</sub></b> = van Driest wall-damping function (see below)<br>
+      <b>S<sub>ij</sub></b> = resolved strain-rate tensor, computed from 6 central-difference velocity gradients<br>
+      <b>|S&#773;|</b> = its Frobenius norm. Includes all 6 unique components: S<sub>11</sub>&sup2; + S<sub>22</sub>&sup2; + S<sub>33</sub>&sup2; + 2(S<sub>12</sub>&sup2; + S<sub>13</sub>&sup2; + S<sub>23</sub>&sup2;)
+    </div>
+    <div class="cl2 ht"><b>Effective viscosity:</b> The total viscosity used in the diffusion step is &#957;<sub>eff</sub> = &#957; + &#957;<sub>t</sub>, replacing the constant &#957; in the original N-S equation. &#957;<sub>t</sub> is clamped at 10&#957; to prevent numerical blow-up in strongly sheared regions.</div>
+
+    <!-- ═══ VAN DRIEST ═══ -->
+    <div class="sh" id="vdriest">Van Driest wall-damping function</div>
+    <div class="bt">The Smagorinsky constant C<sub>s</sub> must be reduced near solid walls because turbulent fluctuations are suppressed by the wall. Van Driest (1956) proposed a damping function based on the dimensionless wall distance y⁺.</div>
+    <div class="eq ht">f<sub>d</sub> = 1 &minus; exp(&minus;y<sup>+</sup> / A<sup>+</sup>)</div>
+    <div class="eq ht">y<sup>+</sup> = &phi;(x) &middot; U<sub>&infin;</sub> / &#957; &nbsp;&nbsp;&nbsp; A<sup>+</sup> = 26</div>
+    <div class="eq-cap">
+      <b>&phi;(x)</b> = signed distance field value at the grid cell (distance to nearest wall in metres)<br>
+      <b>A<sup>+</sup></b> = 26 is the empirical constant (van Driest 1956, validated for flat-plate boundary layers)<br>
+      f<sub>d</sub> &rarr; 0 at the wall (y<sup>+</sup>&rarr;0), f<sub>d</sub> &rarr; 1 far from wall &rarr; full Smagorinsky SGS model in the bulk flow
+    </div>
+    <div class="cl2 ht"><b>Why this matters:</b> Without damping, Smagorinsky over-predicts &#957;<sub>t</sub> near walls, causing excessive drag and suppressed turbulence in the viscous sublayer. Van Driest damping corrects this without requiring wall-resolved mesh refinement.</div>
+
+    <!-- ═══ K-EPS ═══ -->
+    <div class="sh" id="keps">k&ndash;&epsilon; turbulence transport</div>
+    <div class="bt">Alongside the Smagorinsky LES, AeroSim transports TKE k and its dissipation rate &epsilon; to track turbulence intensity across the domain. This hybrid approach gives a converged turbulence field for metrics reporting.</div>
+    <div class="eq ht">&part;k/&part;t + (u&middot;&nabla;)k = &nabla;&middot;[(&#957; + &#957;<sub>t</sub>/&sigma;<sub>k</sub>)&nabla;k] + P<sub>k</sub> &minus; &epsilon;</div>
+    <div class="eq ht">&part;&epsilon;/&part;t + (u&middot;&nabla;)&epsilon; = &nabla;&middot;[(&#957; + &#957;<sub>t</sub>/&sigma;<sub>&epsilon;</sub>)&nabla;&epsilon;] + (&epsilon;/k)(C<sub>1&epsilon;</sub>P<sub>k</sub> &minus; C<sub>2&epsilon;</sub>&epsilon;)</div>
+    <div class="eq ht">P<sub>k</sub> = &#957;<sub>t</sub> |S&#773;|&sup2; &nbsp;&nbsp;&nbsp; (TKE production)</div>
+    <div class="eq-cap">
+      <b>k</b> = turbulent kinetic energy (m&sup2;/s&sup2;) &nbsp;&middot;&nbsp; <b>&epsilon;</b> = dissipation rate (m&sup2;/s&sup3;)<br>
+      Model constants: C<sub>&mu;</sub>=0.09, C<sub>1&epsilon;</sub>=1.44, C<sub>2&epsilon;</sub>=1.92, &sigma;<sub>k</sub>=1.0, &sigma;<sub>&epsilon;</sub>=1.3<br>
+      Initial conditions: k<sub>0</sub> = 1.5(I&middot;U<sub>&infin;</sub>)&sup2; at I=5% turbulence intensity &nbsp;&middot;&nbsp; &epsilon;<sub>0</sub> = C<sub>&mu;</sub> k<sup>3/2</sup>/l, l = 0.07L
+    </div>
+
+    <!-- ═══ SDF ═══ -->
+    <div class="sh" id="sdf">Signed Distance Field (SDF)</div>
+    <div class="bt">Instead of a binary obstacle flag, each grid cell stores &phi;(x) &mdash; the signed distance to the nearest surface triangle. Negative inside the solid, positive outside. This replaces the stair-stepped voxel representation with a smooth, sub-cell-accurate geometry description.</div>
+    <div class="eq">&phi;(x) = &pm; min<sub>T&isin;mesh</sub> dist(x, T)</div>
+    <div class="eq-cap">
+      &phi; &lt; 0: inside solid &nbsp;&middot;&nbsp; &phi; = 0: on surface &nbsp;&middot;&nbsp; &phi; &gt; 0: outside (fluid domain)<br>
+      Distance to each triangle computed via Christer Ericson&apos;s point-to-triangle closest-point formula (exact, handles interior and edge/vertex cases)<br>
+      Sign from dot product of (x &minus; centroid) with triangle outward normal
+    </div>
+    <div class="cl2"><b>Why SDF over voxels:</b> Binary voxels create stair-stepped surfaces with O(h) geometry error, causing spurious pressure oscillations and systematic Cd overestimation. The SDF represents the surface at sub-cell accuracy, dramatically improving pressure field quality near the body.</div>
+
+    <!-- ═══ IBM ═══ -->
+    <div class="sh" id="ibm">Immersed Boundary Method (IBM)</div>
+    <div class="bt">The IBM enforces the no-slip condition at the solid surface by adding a body force to the momentum equation rather than applying hard Dirichlet conditions at discrete voxel cells. This eliminates staircase errors at the fluid&ndash;solid interface.</div>
+    <div class="eq ht">f<sub>IBM</sub> = &minus;(1/&Delta;t) &middot; &chi;(&phi;) &middot; u</div>
+    <div class="eq ht">&chi;(&phi;) = &frac12;[1 + cos(&pi;&phi;/&epsilon;)] &nbsp;&nbsp; for 0 &le; &phi; &le; &epsilon;</div>
+    <div class="eq-cap">
+      <b>&chi;</b> = smoothed indicator: &chi;=1 inside solid, smooth C<sup>1</sup> ramp for 0&le;&phi;&le;&epsilon;, &chi;=0 in fluid<br>
+      <b>&epsilon;</b> = 1.5&Delta; (transition width, 1.5 grid cells) &nbsp;&middot;&nbsp; cosine ramp ensures continuous first derivative<br>
+      Effect: u &larr; u&middot;(1&minus;&chi;) &nbsp; forces velocity to zero smoothly at the wall over the IBM transition layer
+    </div>
+    <div class="cl2 ht"><b>Turbulence near IBM:</b> The van Driest y<sup>+</sup> is estimated directly from the SDF: y<sup>+</sup> = max(&phi;,0)&middot;U<sub>&infin;</sub>/&#957;. This means near-wall turbulence is automatically suppressed without a separate wall-distance solve &mdash; a key advantage of the SDF+IBM combination.</div>
+
+    <!-- ═══ SDF NORMALS ═══ -->
+    <div class="sh" id="sdfnorm">Surface normals &amp; pressure from SDF</div>
+    <div class="bt">Because the SDF is defined everywhere, outward surface normals can be computed analytically as the gradient of the SDF field. This gives smooth normals for force integration even at coarse grid resolution.</div>
+    <div class="eq">n&#770; = &nabla;&phi; / |&nabla;&phi;|</div>
+    <div class="eq-cap">
+      Gradient computed by central differences: &part;&phi;/&part;x &asymp; (&phi;<sub>x+1</sub>&minus;&phi;<sub>x-1</sub>)/(2&Delta;x)<br>
+      By the eikonal equation, |&nabla;&phi;| = 1 everywhere for an exact SDF &mdash; any deviation indicates numerical error<br>
+      Surface pressure sampling: each mesh vertex samples a 5&times;5&times;5 voxel neighbourhood, weighted by exp(&minus;|&phi;|/(2&Delta;)) to give highest weight to near-wall cells
+    </div>
+
+    <!-- ═══ ENERGY ═══ -->
+    <div class="sh" id="energy">Energy equation (convection-diffusion)</div>
+    <div class="eq ht">&part;T/&part;t + (u&middot;&nabla;)T = &nabla;&middot;[(&alpha; + &#957;<sub>t</sub>/Pr<sub>t</sub>)&nabla;T] + Q&#775;/(&rho;c<sub>p</sub>)</div>
+    <div class="eq-cap">
+      <b>T</b> = temperature (K) &nbsp;&middot;&nbsp; <b>&alpha;</b> = k/(&rho;c<sub>p</sub>) molecular thermal diffusivity<br>
+      <b>&#957;<sub>t</sub>/Pr<sub>t</sub></b> = turbulent thermal diffusivity, Pr<sub>t</sub>=0.9 (turbulent Prandtl number)<br>
+      <b>Q&#775;</b> = volumetric heat source (W/m&sup3;) &nbsp;&middot;&nbsp; Wall BC: isothermal T=T<sub>wall</sub> enforced via IBM mask
+    </div>
+
+    <!-- ═══ NEWTON ═══ -->
+    <div class="sh" id="newton">Newton&apos;s law of cooling &amp; convective heat flux</div>
+    <div class="eq ht">q&Prime; = h (T<sub>wall</sub> &minus; T<sub>&infin;</sub>) &nbsp;&nbsp;&nbsp; h = Nu &middot; k / L &nbsp;&nbsp; [W/m&sup2;K]</div>
+    <div class="eq-cap"><b>h</b> = convection coefficient &nbsp;&middot;&nbsp; For air at 20&deg;C: k &asymp; 0.026 W/mK &nbsp;&middot;&nbsp; L = characteristic length (m)</div>
+
+    <!-- ═══ NUSSELT ═══ -->
+    <div class="sh" id="nusselt">Nusselt number correlations</div>
+    <div class="eq ht">Nu = 0.664 Re<sub>x</sub><sup>&frac12;</sup> Pr<sup>&frac13;</sup> &nbsp;&nbsp; (Blasius, laminar flat plate)</div>
+    <div class="eq ht">Nu = 0.037 Re<sub>L</sub><sup>0.8</sup> Pr<sup>&frac13;</sup> &nbsp;&nbsp; (turbulent flat plate, avg)</div>
+    <div class="eq ht">Nu = 0.023 Re<sub>D</sub><sup>0.8</sup> Pr<sup>0.4</sup> &nbsp;&nbsp; (Dittus-Boelter, cylinder)</div>
+    <div class="eq ht">Nu = 2 + 0.6 Re<sup>&frac12;</sup> Pr<sup>&frac13;</sup> &nbsp;&nbsp; (Ranz-Marshall, sphere)</div>
+    <div class="eq-cap">Local Nu is computed per-vertex using the Blasius flat-plate correlation with local Re<sub>x</sub> from near-wall velocity magnitude. &nbsp;&middot;&nbsp; Pr<sub>air</sub> &asymp; 0.71</div>
+
+    <!-- ═══ FRACTIONAL STEP ═══ -->
+    <div class="sh" id="scheme">Fractional-step solver (Chorin projection)</div>
+    <div class="bt">AeroSim uses a four-step fractional-step method each iteration. The time step is adaptive with CFL &asymp; 0.5 for stability.</div>
+    <div class="eq">Step 1 &mdash; <b>Smagorinsky:</b> compute &#957;<sub>t</sub> = (C<sub>s</sub>&Delta;f<sub>d</sub>)&sup2;|S&#773;| at all fluid cells</div>
+    <div class="eq">Step 2 &mdash; <b>Advect:</b> u* = u(x &minus; u&Delta;t) &nbsp; (semi-Lagrangian backtrack, trilinear interp)</div>
+    <div class="eq">Step 3 &mdash; <b>Diffuse:</b> u** = u* + (&#957;+&#957;<sub>t</sub>)&nabla;&sup2;u*&Delta;t &nbsp; (explicit 6-neighbor Laplacian)</div>
+    <div class="eq ht">Step 3b &mdash; <b>IBM:</b> u** &larr; u**&middot;(1&minus;&chi;(&phi;)) &nbsp; (smooth no-slip at surface)</div>
+    <div class="eq">Step 4 &mdash; <b>Project:</b> &nabla;&sup2;p = (&rho;/&Delta;t)&nabla;&middot;u** &rarr; u<sup>n+1</sup> = u** &minus; (&Delta;t/&rho;)&nabla;p &nbsp; (3 Jacobi iters)</div>
+    <div class="eq ht">Step 5 &mdash; <b>Temperature:</b> same advect+diffuse for T with &alpha;<sub>eff</sub>=&alpha;+&#957;<sub>t</sub>/Pr<sub>t</sub></div>
+    <div class="eq ht">Step 6 &mdash; <b>k&ndash;&epsilon;:</b> transport TKE and dissipation with production P<sub>k</sub>=&#957;<sub>t</sub>|S&#773;|&sup2;</div>
+    <div class="cl2"><b>Stability:</b> Semi-Lagrangian advection is unconditionally stable for any &Delta;t. The explicit diffusion step requires &Delta;t &lt; &Delta;x&sup2;/(2(&#957;+&#957;<sub>t</sub>)). The adaptive CFL condition ensures this is satisfied.</div>
+
+    <!-- ═══ RK4 STREAMLINES ═══ -->
+    <div class="sh" id="rk4">RK4 streamline integration</div>
+    <div class="bt">Streamlines are computed by integrating the steady-state velocity field using 4th-order Runge-Kutta. Each step uses trilinear interpolation of the 3D voxel field, giving smooth curves that track the true flow topology rather than jumping between cell centres.</div>
+    <div class="eq">k<sub>1</sub> = u(x<sub>n</sub>)</div>
+    <div class="eq">k<sub>2</sub> = u(x<sub>n</sub> + &frac12;h k<sub>1</sub>)</div>
+    <div class="eq">k<sub>3</sub> = u(x<sub>n</sub> + &frac12;h k<sub>2</sub>)</div>
+    <div class="eq">k<sub>4</sub> = u(x<sub>n</sub> + h k<sub>3</sub>)</div>
+    <div class="eq ok">x<sub>n+1</sub> = x<sub>n</sub> + (h/6)(k<sub>1</sub> + 2k<sub>2</sub> + 2k<sub>3</sub> + k<sub>4</sub>)</div>
+    <div class="eq-cap">
+      <b>h</b> = 0.8 grid cells (RK4 step size) &nbsp;&middot;&nbsp; <b>u(x)</b> = trilinearly interpolated velocity at position x<br>
+      Termination: SDF &le; 0.5&Delta; (hits surface), exits domain, or speed &lt; 2% of U<sub>&infin;</sub> (stagnation zone)<br>
+      Seeds: 100 structured inlet seeds + 24 radial wake seeds behind body centroid<br>
+      Colour: blue&rarr;cyan&rarr;green&rarr;yellow&rarr;red by local |u|/U<sub>&infin;</sub><br>
+      Live update: streamlines rebuild every 8 solver iterations during the CFD run
+    </div>
+
+    <!-- ═══ ACCURACY ═══ -->
+    <div class="sh" id="accuracy">Accuracy notes &amp; limitations</div>
+    <table class="ptb">
+      <tr><th>Feature</th><th>Implementation</th><th>Remaining limitation</th></tr>
+      <tr><td>Turbulence</td><td>Smagorinsky LES + k&ndash;&epsilon; transport</td><td>Not wall-resolved LES; no dynamic C<sub>s</sub></td></tr>
+      <tr><td>Geometry</td><td>SDF + IBM (sub-cell accuracy)</td><td>SDF accuracy limited by triangle mesh resolution</td></tr>
+      <tr><td>Compressibility</td><td>Incompressible (&rho;=const)</td><td>Invalid above Ma &asymp; 0.3</td></tr>
+      <tr><td>Pressure solve</td><td>3 Jacobi iterations</td><td>Under-converged for fine grids; Poisson not fully solved</td></tr>
+      <tr><td>Heat transfer</td><td>Turbulent thermal diffusivity &alpha;+&#957;<sub>t</sub>/Pr<sub>t</sub></td><td>No radiation, no conjugate solid conduction</td></tr>
+      <tr><td>Streamlines</td><td>RK4, trilinear interp</td><td>Steady-state field; no unsteady vortex shedding</td></tr>
+    </table>
+    <div class="cl2 wn"><b>Use AeroSim for:</b> relative comparison between design iterations, qualitative flow visualization, preliminary Cd/Cl estimates, thermal hotspot identification, turbulence pattern analysis.<br><b>Not suitable for:</b> certification loads, high-Mach flows, unsteady phenomena (vortex shedding, flutter), or detailed heat exchanger design.</div>
+
+    <!-- ═══ REYNOLDS ═══ -->
+    <div class="sh" id="re">Reynolds number &amp; flow regimes</div>
+    <div class="eq ok">Re = &rho; U L / &mu; = U L / &#957;</div>
+    <div class="rg">
+      <div class="rc"><div class="rc-n">Creeping</div><div class="rc-r">Re &lt; 1</div><div class="rc-d">Stokes flow, C<sub>d</sub>=24/Re</div></div>
+      <div class="rc"><div class="rc-n">Laminar</div><div class="rc-r">Re &lt; 2,300</div><div class="rc-d">Smooth, stable BL</div></div>
+      <div class="rc"><div class="rc-n">Transition</div><div class="rc-r">2k&ndash;5k</div><div class="rc-d">LES most active</div></div>
+      <div class="rc"><div class="rc-n">Turbulent</div><div class="rc-r">Re &gt; 5,000</div><div class="rc-d">Smagorinsky dominant</div></div>
+    </div>
+
+    <!-- ═══ MACH ═══ -->
+    <div class="sh" id="mach">Mach regimes</div>
+    <div class="eq ok">Ma = U / a &nbsp;&nbsp;&nbsp; a = &radic;(&gamma;RT) &asymp; 340 m/s (sea level, 20&deg;C)</div>
+    <div class="rg">
+      <div class="rc"><div class="rc-n">Subsonic</div><div class="rc-r">Ma &lt; 0.3</div><div class="rc-d">Incompressible valid</div></div>
+      <div class="rc"><div class="rc-n">Transonic</div><div class="rc-r">0.3&ndash;0.8</div><div class="rc-d">Prandtl-Glauert needed</div></div>
+      <div class="rc"><div class="rc-n">Supersonic</div><div class="rc-r">0.8&ndash;5</div><div class="rc-d">Compressible solver req.</div></div>
+      <div class="rc"><div class="rc-n">Hypersonic</div><div class="rc-r">Ma &gt; 5</div><div class="rc-d">Aerothermal dominant</div></div>
+    </div>
+    <div class="cl2 wn"><b>Compressibility correction:</b> AeroSim uses incompressible N-S (&rho;=const). For 0.3&lt;Ma&lt;0.7 apply Prandtl-Glauert: C<sub>p,comp</sub> = C<sub>p,inc</sub>/&radic;(1&minus;Ma&sup2;). Above Ma&asymp;0.7 a compressible solver is required.</div>
+
+    <!-- ═══ CD REFERENCE ═══ -->
+    <div class="sh" id="cdg">C<sub>d</sub> reference values</div>
+    <table class="ptb">
+      <tr><th>Body</th><th>C<sub>d</sub></th><th>Notes</th></tr>
+      <tr><td>NACA0012 airfoil</td><td>0.006&ndash;0.015</td><td>Low AoA, Re=10<sup>7</sup></td></tr>
+      <tr><td>Sphere (laminar)</td><td>0.47</td><td>Re&lt;3&times;10<sup>5</sup></td></tr>
+      <tr><td>Sphere (turbulent)</td><td>0.1</td><td>Post drag-crisis Re&gt;5&times;10<sup>5</sup></td></tr>
+      <tr><td>Cylinder (2D)</td><td>1.0&ndash;1.2</td><td>Cross-section</td></tr>
+      <tr><td>Flat plate (normal)</td><td>1.28</td><td>Perpendicular to flow</td></tr>
+      <tr><td>Sedan car</td><td>0.25&ndash;0.30</td><td>Full-scale wind tunnel</td></tr>
+      <tr><td>Formula 1</td><td>0.7&ndash;1.0</td><td>High downforce config</td></tr>
+      <tr><td>Commercial aircraft</td><td>0.025&ndash;0.04</td><td>Cruise configuration</td></tr>
+    </table>
+
+    <!-- ═══ THERMAL ═══ -->
+    <div class="sh" id="thg">Thermal design guidelines</div>
+    <table class="ptb">
+      <tr><th>Metric</th><th>Target</th><th>Action if exceeded</th></tr>
+      <tr><td>q&Prime; peak</td><td>&lt; 1,000 W/m&sup2;</td><td>Add cooling fins, increase flow</td></tr>
+      <tr><td>Nu avg</td><td>&gt; 50 forced conv.</td><td>Redesign flow path</td></tr>
+      <tr><td>T<sub>wall</sub> max</td><td>&lt; 85&deg;C (electronics)</td><td>TIM, heatsink</td></tr>
+      <tr><td>Turbulence intensity</td><td>&lt; 10% at inlet</td><td>Add flow straightener</td></tr>
+    </table>
+
+    <!-- ═══ REFERENCES ═══ -->
+    <div class="sh" id="refs">References</div>
+    <div class="rf"><b>Smagorinsky, J. (1963)</b> &mdash; General circulation experiments with the primitive equations. <i>Mon. Weather Rev.</i> 91:99&ndash;164. Original SGS model.</div>
+    <div class="rf"><b>van Driest, E.R. (1956)</b> &mdash; On turbulent flow near a wall. <i>J. Aeronaut. Sci.</i> 23:1007&ndash;1011. Wall-damping function A<sup>+</sup>=26.</div>
+    <div class="rf"><b>Launder &amp; Spalding (1974)</b> &mdash; The numerical computation of turbulent flows. <i>Comput. Methods Appl. Mech.</i> k&ndash;&epsilon; model constants.</div>
+    <div class="rf"><b>Peskin, C.S. (2002)</b> &mdash; The immersed boundary method. <i>Acta Numerica</i> 11:479&ndash;517. IBM formulation.</div>
+    <div class="rf"><b>Osher &amp; Fedkiw (2003)</b> &mdash; Level Set Methods and Dynamic Implicit Surfaces. Springer. SDF theory and eikonal equation.</div>
+    <div class="rf"><b>Ericson, C. (2004)</b> &mdash; Real-Time Collision Detection. Morgan Kaufmann. Point-to-triangle distance formula.</div>
+    <div class="rf"><b>Chorin, A. (1968)</b> &mdash; Numerical solution of the Navier-Stokes equations. <i>Math. Comp.</i> 22:745&ndash;762. Fractional-step projection method.</div>
+    <div class="rf"><b>Stam, J. (1999)</b> &mdash; Stable fluids. <i>SIGGRAPH Proc.</i> Semi-Lagrangian advection scheme.</div>
+    <div class="rf"><b>Anderson, J.D. (2011)</b> &mdash; Fundamentals of Aerodynamics, 5th ed. McGraw-Hill. Cd/Cl reference values and boundary layer theory.</div>
+    <div class="rf"><b>Incropera &amp; DeWitt (2011)</b> &mdash; Fundamentals of Heat and Mass Transfer, 7th ed. Wiley. Nusselt correlations and thermal design guidelines.</div>
+
+  </div>
+</div>
+</div>
+</div>
+<script>
+function buildNav(active){
+  const pages=[
+    {href:'index.html',label:'Dashboard',icon:'<polyline points="3 9 12 2 21 9"/><path d="M9 22V12h6v10"/><rect x="3" y="9" width="18" height="13" rx="1"/>'},
+    {href:'simulate.html',label:'Simulate',icon:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>'},
+    {href:'parts.html',label:'Parts',icon:'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>'},
+    {href:'compare.html',label:'Compare',icon:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>'},
+    {href:'physics.html',label:'Physics',icon:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'},
+  ];
+  const nav=document.createElement('nav');nav.className='topnav';
+  nav.innerHTML='<div class="nav-brand">AERO<span>SIM v3</span></div><div class="nav-links">'+
+    pages.map(p=>`<a class="nav-link${p.href===active?' active':''}" href="${p.href}"><svg viewBox="0 0 24 24">${p.icon}</svg>${p.label}</a>`).join('')+'</div>';
+  document.body.insertBefore(nav,document.body.firstChild);
+}
+
+buildNav('physics.html');
+function go(id,el){
+  document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});
+  document.querySelectorAll('.pnav a').forEach(a=>a.classList.remove('on'));
+  el.classList.add('on');
+  event.preventDefault();
+}
+const pc2=document.getElementById('pc2');
+const sects=pc2.querySelectorAll('[id]');
+pc2.addEventListener('scroll',()=>{
+  let cur='';
+  sects.forEach(s=>{if(s.offsetTop-pc2.scrollTop<100)cur=s.id;});
+  document.querySelectorAll('.pnav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+cur));
+});
+</script>
+</body>
+</html>
